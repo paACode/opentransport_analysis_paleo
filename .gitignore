@@ -55,3 +55,4 @@ rsconnect/
 *.gdoc
 *.pdf
 *.tflx
+*.DS_Store
