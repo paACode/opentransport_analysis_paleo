@@ -52,9 +52,11 @@ Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod 
 # 
 ```
 
-Das Bundesamt für Meteorologie und Klimatologie MeteoSchweiz veröffentlicht eine Vielzahl von Daten, darunter der Datensatz *Schweizer Klimamessnetz*. Dieser umfasst die klimatologisch wichtigsten Bodenmesstationen innerhalb des Messnetzte der MeteoSchweiz zusammen. Er besteht aus 29 Klimastationen und 46 Niederschlagstationen und umfasst Tagesdurchschnittswerte von bspw. Gesamtschneehöhe, Sonnenscheindauer, Niederschlag und Lufttemperatur.
+The Federal Office of Meteorology and Climatology MeteoSwiss publishes a wide range of data, including the dataset *Schweizer Klimamessnetz*. This dataset contains the most climatologically significant ground-based measurement stations within MeteoSwiss's measurement network. It consists of 29 climate stations and 46 precipitation stations and includes daily average values of, for example, total snow depth, sunshine duration, precipitation, and air temperature.
 
-Um die Komplexität für die Analyse im Rahmen dieses Moduls überschaubar zu halten, wurden alle Messwerte der 29 verschiedenen Messtationen zusammengefasst und ein Durchschnittswert pro Messeinheit pro Tag errechnet.
+### Data Preprocessing
+
+The measurement data from *Schweizer Klimamessnetz* is available in separate CSV files for each station and day. To maintain manageable complexity for analysis within the scope of this module, all measurement values from the 29 different measurement stations were aggregated, and an average value per measurement unit per day was calculated. This preprocessing was performed using a Python script.
 
 ``` python
 import pandas as pd
@@ -117,9 +119,9 @@ avg_df.to_csv(output_file, index=False)
 print(f"The merged file with updated column names has been saved to: {output_file}")
 ```
 
-### Data Preprocessing
+In addition to merging and averaging the individual measurement values, the dataset's labels were also renamed for readability. For example, *tre200d0* was renamed to *Lufttemperatur*.
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+Finally, we obtained an average weather dataset for Switzerland for the year 2024, based on the most important ground measurement stations within the MeteoSwiss network.
 
 # Data Analysis
 
