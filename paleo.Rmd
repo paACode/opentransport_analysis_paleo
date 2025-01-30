@@ -15,11 +15,18 @@ opts_chunk$set(echo = FALSE ,
 
 # Introduction
 
-```{r}
-# Use Case, Initial Situation, Goal 
-```
+MadeUpCompany AG has recently identified that production employees frequently arrive late to work due to delays in public transportation. This poses a significant challenge since the absence of a single team member can halt the entire production line.
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+To address this issue, the Production Manager has initiated a research project in collaboration with HSLU.
+
+Three possible countermeasure were identified:
+
+- Adjust shift start times based on transportation reliability.
+- Implement seasonal adjustments to production capacity based on weather-related transportation disruptions.
+- Consider regional hiring preferences to mitigate dependency on unreliable train routes.
+
+The goal of the Data Science students is to provide MadeUpCompany AG with an insightful report, analyzing publicly available data.
+
 
 # Exploring Data
 
