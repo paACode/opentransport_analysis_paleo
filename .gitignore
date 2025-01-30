@@ -50,7 +50,6 @@ rsconnect/
 
 #Further ignores
 *.html
-*.csv
 *.docx
 *.gdoc
 *.pdf
