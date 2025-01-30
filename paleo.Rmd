@@ -13,21 +13,21 @@ opts_chunk$set(echo = FALSE ,
                comment = NA)
 ```
 
-
 # Introduction
 
 ```{r}
 # Use Case, Initial Situation, Goal 
 ```
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 # Exploring Data
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 ## Tranport Data
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 ### Data Preprocessing
 
@@ -35,25 +35,93 @@ Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod 
 # Histogram: Overview
 # 
 ```
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 ## Weather Data
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+```{r}
+# Histogram: Overview
+# 
+```
+
+Das Bundesamt für Meteorologie und Klimatologie MeteoSchweiz veröffentlicht eine Vielzahl von Daten, darunter der Datensatz *Schweizer Klimamessnetz*. Dieser umfasst die klimatologisch wichtigsten Bodenmesstationen innerhalb des Messnetzte der MeteoSchweiz zusammen. Er besteht aus 29 Klimastationen und 46 Niederschlagstationen und umfasst Tagesdurchschnittswerte von bspw. Gesamtschneehöhe, Sonnenscheindauer, Niederschlag und Lufttemperatur.
+
+Um die Komplexität für die Analyse im Rahmen dieses Moduls überschaubar zu halten, wurden alle Messwerte der 29 verschiedenen Messtationen zusammengefasst und ein Durchschnittswert pro Messeinheit pro Tag errechnet.
+
+``` python
+import pandas as pd
+import glob
+import numpy as np
+
+# Step 1: Define file paths
+input_folder = "/Users/leonarddost/Documents/RBootcamp/raw_data"
+output_file = "/Users/leonarddost/Documents/RBootcamp/swiss_avg_weather_2024.csv"
+
+# Step 2: Load all CSV files with the correct delimiter
+file_paths = glob.glob(f"{input_folder}/*.csv")
+dfs = [pd.read_csv(file, delimiter=';') for file in file_paths]
+
+# Step 3: Concatenate the data
+combined_df = pd.concat(dfs, ignore_index=True)
+
+# Debugging: Check the columns in the combined DataFrame
+print("Column names in the combined DataFrame:", combined_df.columns)
+
+# Step 4: Replace missing values ("-") with NaN
+combined_df.replace("-", np.nan, inplace=True)
+
+# Step 5: Convert numeric columns to numeric types (coerce invalid values to NaN)
+columns_to_aggregate = [col for col in combined_df.columns if col not in ['station/location', 'date']]
+
+for col in columns_to_aggregate:
+    combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce')
+
+# Debugging: Print rows with NaN values to check for invalid data
+invalid_rows = combined_df[combined_df[columns_to_aggregate].isnull().any(axis=1)]
+if not invalid_rows.empty:
+    print("Rows with invalid numeric data detected:")
+    print(invalid_rows)
+
+# Step 6: Group by 'date' and calculate averages for numeric columns
+avg_df = combined_df.groupby('date')[columns_to_aggregate].mean().reset_index()
+
+# Step 7: Rename the columns
+column_mapping = {
+    'station/location': 'Wetterstation',
+    'date': 'Datum',
+    'gre000d0': 'Globalstrahlung',
+    'hto000d0': 'Gesamtschneehöhe',
+    'nto000d0': 'Gesamtbewölkung',
+    'prestad0': 'Luftdruck',
+    'rre150d0': 'Niederschlag',
+    'sre000d0': 'Sonnenscheindauer',
+    'tre200d0': 'Lufttemperatur',
+    'tre200dn': 'Lufttemperatur (min)',
+    'tre200dx': 'Lufttemperatur (max)',
+    'ure200d0': 'Luftfeuchtigkeit'
+}
+
+avg_df.rename(columns=column_mapping, inplace=True)
+
+# Step 8: Export the final DataFrame to CSV
+avg_df.to_csv(output_file, index=False)
+
+print(f"The merged file with updated column names has been saved to: {output_file}")
+```
 
 ### Data Preprocessing
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 # Data Analysis
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 # Results
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 # Conclusion
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
