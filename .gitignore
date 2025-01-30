@@ -47,3 +47,11 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+#Further ignores
+*.html
+*.csv
+*.docx
+*.gdoc
+*.pdf
+*.tflx
