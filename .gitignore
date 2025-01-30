@@ -56,3 +56,4 @@ rsconnect/
 *.pdf
 *.tflx
 *.DS_Store
+*.Rproj
