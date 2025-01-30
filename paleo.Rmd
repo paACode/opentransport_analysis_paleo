@@ -57,6 +57,8 @@ The Federal Office of Meteorology and Climatology MeteoSwiss publishes a wide ra
 ### Data Preprocessing
 
 The measurement data from *Schweizer Klimamessnetz* is available in separate CSV files for each station and day. To maintain manageable complexity for analysis within the scope of this module, all measurement values from the 29 different measurement stations were aggregated, and an average value per measurement unit per day was calculated. This preprocessing was performed using a Python script.
+<details>
+<summary> Click to see Python code </summary>
 
 ``` python
 import pandas as pd
@@ -118,6 +120,8 @@ avg_df.to_csv(output_file, index=False)
 
 print(f"The merged file with updated column names has been saved to: {output_file}")
 ```
+</details>
+<p>
 
 In addition to merging and averaging the individual measurement values, the dataset's labels were also renamed for readability. For example, *tre200d0* was renamed to *Lufttemperatur*.
 
