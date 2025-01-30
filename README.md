@@ -18,3 +18,5 @@ Command | Description
 -|- 
 git diff xyz.R | Shows what is different between current file and staging area
 gitk -all  | Shows history graphically
+git stash | Saves local changes temporarily somewhere and puts repo back to previous state
+git stash apply | gets back last stash
