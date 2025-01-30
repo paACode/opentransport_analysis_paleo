@@ -21,12 +21,11 @@ To address this issue, the Production Manager has initiated a research project i
 
 Three possible countermeasure were identified:
 
-- Adjust shift start times based on transportation reliability.
-- Implement seasonal adjustments to production capacity based on weather-related transportation disruptions.
-- Consider regional hiring preferences to mitigate dependency on unreliable train routes.
+-   Adjust shift start times based on transportation reliability.
+-   Implement seasonal adjustments to production capacity based on weather-related transportation disruptions.
+-   Consider regional hiring preferences to mitigate dependency on unreliable train routes.
 
 The goal of the Data Science students is to provide MadeUpCompany AG with an insightful report, analyzing publicly available data.
-
 
 # Exploring Data
 
@@ -47,18 +46,20 @@ Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod 
 
 ## Weather Data
 
-```{r}
-# Histogram: Overview
-# 
+```{r echo=TRUE}
+## Import weather data from CSV file.
+d.weather <- read.csv(file = "raw_weather_2024.csv", sep = ",")
 ```
 
-The Federal Office of Meteorology and Climatology MeteoSwiss publishes a wide range of data, including the dataset *Schweizer Klimamessnetz*. This dataset contains the most climatologically significant ground-based measurement stations within MeteoSwiss's measurement network. It consists of 29 climate stations and 46 precipitation stations and includes daily average values of, for example, total snow depth, sunshine duration, precipitation, and air temperature.
+The Federal Office of Meteorology and Climatology MeteoSwiss publishes a wide range of data, including the dataset *<a href="https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html">Schweizer Klimamessnetz</a>*. This dataset contains the most climatologically significant ground-based measurement stations within MeteoSwiss's measurement network. It consists of 29 climate stations and 46 precipitation stations and includes daily average values of, for example, total snow depth, sunshine duration, precipitation, and air temperature.
 
 ### Data Preprocessing
 
-The measurement data from *Schweizer Klimamessnetz* is available in separate CSV files for each station and day. To maintain manageable complexity for analysis within the scope of this module, all measurement values from the 29 different measurement stations were aggregated, and an average value per measurement unit per day was calculated. This preprocessing was performed using a Python script.
+The measurement data from *<a href="https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html">Schweizer Klimamessnetz</a>* is available in separate CSV files for each station and day. To maintain manageable complexity for analysis within the scope of this module, all measurement values from the 29 different measurement stations were aggregated, and an average value per measurement unit per day was calculated. This preprocessing was performed using a Python script.
+
 <details>
-<summary> Click to see Python code </summary>
+
+<summary>Click to see Python code</summary>
 
 ``` python
 import pandas as pd
@@ -120,12 +121,59 @@ avg_df.to_csv(output_file, index=False)
 
 print(f"The merged file with updated column names has been saved to: {output_file}")
 ```
+
 </details>
+
 <p>
 
 In addition to merging and averaging the individual measurement values, the dataset's labels were also renamed for readability. For example, *tre200d0* was renamed to *Lufttemperatur*.
 
+```{r eval=TRUE, echo=FALSE, include=TRUE, message=FALSE}
+## Display weather data
+library(dplyr)
+
+d.weather %>%
+  transmute(
+    Datum = Datum,
+    Sonnenscheindauer = round(Sonnenscheindauer, 2),
+    Niederschlag = round(Niederschlag, 1),
+    Temperatur = round(Lufttemperatur, 1)
+  ) %>%
+  head()
+
+```
+
+
 Finally, we obtained an average weather dataset for Switzerland for the year 2024, based on the most important ground measurement stations within the MeteoSwiss network.
+
+## Merge train data with weather data
+
+### Prepare dataset for merge
+In order to carry out the merge it was observed that the data format of the data set *raw_weather_2024.csv* was different to the format of the *raw_transport_2024.csv*. Therefor the format was manipulated so that both datasets have the same date formate. 
+
+```{r eval=FALSE, echo=TRUE, include=TRUE}
+## Transform date format for further analysis
+## Ensure the column is interpreted as a character string
+d.weather$Datum <- as.character(d.weather$Datum)
+
+## Format the date correctly
+d.weather$Datum <- format(as.Date(d.weather$Datum, format = "%Y%m%d"), "%d.%m.%Y")
+
+## Check the result
+head(d.weather$Datum)
+
+```
+
+Afterwards, to merge the data a left join method was chosen and carried out. The ID used for the merge was the prior prepared date column.
+
+```{r eval=FALSE, echo=TRUE, include=TRUE}
+## Merge Weather Data into Train Dataset
+
+d.combined <- train_data_filtered %>% 
+  left_join(d.weather, by = c("BETRIEBSTAG" = "Datum"))
+
+```
+
 
 # Data Analysis
 
