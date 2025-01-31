@@ -35,10 +35,39 @@ The first step in addressing the research question was to define the project sco
 For this study, data was sourced from [opentransportdata.swiss](https://opentransportdata.swiss/de/ist-daten-archiv/) and the [Schweizer Klimamessnetz](https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html).
 
 ## Tranport Data
+[opentransportdata.swiss](https://opentransportdata.swiss/de/ist-daten-archiv/) provides a structured dataset of the public transport in Switzerland.
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+- Every month is provided as *.zip-File
+- Every day is provided as *.csv-File
+- Every row contains the arrival or departure of a public vehicle
 
-### Data Preprocessing
+### Reduce dataset
+
+The whole dataset for the year 2024 is roughly ~150GB. Working with such a big data set in R is very time consuming and impractical. Therefore the dataset was reduce to a manageable size before working with R.
+
+The filtering process below reduces the size of the final csv-File to only ~26MB which is way easier to handle than ~150GB.
+
+
+Step | Command | Description
+:-: | :-: | :-:
+1| [bash download_zip_files.sh](https://github.com/paACode/preprocessing_opentransportdata/blob/main/download_zip_files.sh)| Downloads all *.zip files from the year 2024
+2| [bash extract_luzern_to_csv.sh](https://github.com/paACode/preprocessing_opentransportdata/blob/main/extract_luzern_to_csv.sh)|  Filters for "trains" of "SBB" with destination "Lucerne"
+
+In the end the colnames needed to be added again as they got lost during filtering.
+
+<details>
+
+<summary>Click to see Shell command </summary>
+
+``` 
+sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAME;PRODUKT_ID;LINIEN_ID;LINIEN_TEXT;UMLAUF_ID;VERKEHRSMITTEL_TEXT;ZUSATZFAHRT_TF;FAELLT_AUS_TF;BPUIC;HALTESTELLEN_NAME;ANKUNFTSZEIT;AN_PROGNOSE;AN_PROGNOSE_STATUS;ABFAHRTSZEIT;AB_PROGNOSE;AB_PROGNOSE_STATUS;DURCHFAHRT_TF" luzern_arrrivals_only.csv
+```
+</details>
+
+<p>
+
+
+### Data Preparation
 
 ```{r}
 # Histogram: Overview
