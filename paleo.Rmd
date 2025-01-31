@@ -314,6 +314,7 @@ head(d.weather$Datum)
 
 ```
 
+### Merge the data
 Afterwards, to merge the data a left join method was chosen and carried out. The ID used for the merge was the prior prepared date column.
 
 ```{r echo=TRUE, include=TRUE}
@@ -332,38 +333,48 @@ This analysis chapter examines the temporal and categorical patterns of train de
 
 ## Overview of Data
 In order to obtain a overview of the obtained data, the following table was created.
-```{r Overview Table, echo=FALSE, message=FALSE}
+```{r Overview Table, echo=FALSE, message = FALSE}
 library(dplyr)
 library(gt)
 
-# Step 1: Prepare the table (same as before)
+## Step 1: Prepare the table (same as before)
+## create subset with only delayed trains
 d.delayed_trains <- d.combined %>% 
   filter(delay.category != "on time")
 
+## count total trains per weekday
 total_trains_per_day <- d.combined %>%
   group_by(weekday) %>%
   summarise(total_trains = n())
 
+## create default table with train count, delay avg 
+## and delayed train count by weekday
 overview_delay_table <- d.delayed_trains %>%
   group_by(weekday) %>%
-  summarise(
-    delay_count = n(),
-    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
-  ) %>%
+  summarise(delay_count = n(),
+            avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)) %>%
   left_join(total_trains_per_day, by = "weekday") %>%
   mutate(
     percentage_delayed_trains = (delay_count / total_trains) * 100,
-    weekday = factor(weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+    weekday = factor(
+      weekday,
+      levels = c(
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      )
+    )
   ) %>%
   arrange(weekday)
 
 # Step 2: Create a beautiful table using `gt`
 overview_delay_table %>%
   gt() %>%
-  tab_header(
-    title = "Summary of Train Delays by Weekday",
-    subtitle = "Total trains, delayed trains, and percentage delays"
-  ) %>%
+  tab_header(title = "Summary of Train Delays by Weekday", subtitle = "Total trains, delayed trains, and percentage delays") %>%
   fmt_number(
     columns = c(avg_delay_seconds, percentage_delayed_trains),
     decimals = 2
