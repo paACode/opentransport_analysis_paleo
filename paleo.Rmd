@@ -176,7 +176,16 @@ d.train.compl$season <- case_when(
 
 ```{r First Plot}
 
-#First Histogramm Plot
+# Create the histogram with percentages
+ggplot(data =d.train.compl, aes(x = delay.category)) +
+  geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
+                 fill = "skyblue", color = "black") +  # Customize the appearance
+  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
+  #scale_x_sqrt()+
+  theme_minimal()  # Apply a minimal theme
+
+
+
 
 ```
 
