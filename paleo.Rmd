@@ -116,21 +116,10 @@ d.train.filtered <-  d.train.raw %>%
 
 ```{r Complete Dataset}
 
-#' Calculate delay
-#'
-#' This function calculates the  delay of arriving trains.
-#'
-#' @param exp.time 
-#' @param exp.time.format 
-#' @param actual.time  
-#' @param exp.time.format 
-#' @param negative.delays If set to True all negative delays are set to 0
-#' @return delay in seconds
 calc.delay.s <- function(exp.time,
                          exp.time.format,
                          actual.time,
-                         actual.time.format,
-                         negative.delays = TRUE) {
+                         actual.time.format) {
   test_that("Correct Function inputs?", {
     expect_equal(length(exp.time), length(actual.time))
     expect_equal(
@@ -144,27 +133,45 @@ calc.delay.s <- function(exp.time,
   
   actual.time_ <- as.POSIXct(actual.time, format = actual.time.format)
   exp.time_ <- as.POSIXct(exp.time, format = exp.time.format)
-  delay.s <- as.numeric(difftime(exp.time_, actual.time_))
-  # To do : Need to implement negative delays = 0
+  delay.s <- as.numeric(difftime(actual.time_, exp.time_))
   return(delay.s)
   
 }
-#Create a new dataset that will be complemented with additional information
+
+#Create dataset with complimentary information
 d.train.compl <-  d.train.filtered
 
-#Calculate Delay and add to Dataset
+#Add delay in seconds
 d.train.compl$delay.calc.s <- calc.delay.s(
   exp.time = d.train.filtered$ANKUNFTSZEIT,
   exp.time.format = "%d.%m.%Y %H:%M",# SBB provides min accuracy
   actual.time = d.train.filtered$AN_PROGNOSE,
-  actual.time.format = "%d.%m.%Y %H:%M:%S" # Meas accuracy in seconds
+  actual.time.format = "%d.%m.%Y %H:%M:%S" # Meas. accuracy is in seconds
 )
+#Add delay in minutes
+d.train.compl$delay.calc.min <- round(d.train.compl$delay.calc.s/60, 3)
 
-
+#Add delay category
+d.train.compl$delay.category <- cut(
+  x = d.train.compl$delay.calc.s,
+  breaks = c(-Inf, 0, 5, 15, 30, Inf) * 60,# because it is in seconds
+  labels = c("on time", "<5 min", "5-15 min", "15-30 min", ">30 min")
+)
 
 #Add Weekdays
 d.train.compl$weekday <- weekdays(as.Date(d.train.compl$BETRIEBSTAG, 
                                           format = "%d.%m.%Y"))
+#Add months
+d.train.compl$month <- months(as.Date(d.train.compl$BETRIEBSTAG, 
+                                          format = "%d.%m.%Y"))
+#Add season
+d.train.compl$season <- case_when(
+  d.train.compl$month %in% c("December", "January", "February") ~ "Winter",
+  d.train.compl$month %in% c("March", "April", "May") ~ "Spring",
+  d.train.compl$month %in% c("June", "July", "August") ~ "Summer",
+  d.train.compl$month %in% c("September", "October", "November") ~ "Fall"
+)
+
 ```
 
 ```{r First Plot}
