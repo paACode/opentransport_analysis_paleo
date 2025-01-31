@@ -326,7 +326,56 @@ d.combined <- d.train.compl %>%
 
 # Data Analysis
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+
+This analysis chapter examines the temporal and categorical patterns of train delays affecting MadeUpCompany AG employees arriving in Lucerne. By analyzing public transport data from 2024 onward, combined with Swiss weather data, the study investigates delay frequency, duration, and their distribution across weekdays and months. Key metrics, including total and delayed train counts, delay severity, and weather influence, are evaluated to identify trends that could inform effective countermeasures. Through statistical summaries and visualizations, the analysis aims to provide precise, data-driven recommendations to enhance production reliability by mitigating transport-related disruptions.
+
+## Overview of Data
+In order to obtain a overview of the obtained data, the following table was created.
+```{r Overview Table eval=TRUE, echo=FALSE, include=TRUE, message=FALSE}
+library(dplyr)
+library(gt)
+
+# Step 1: Prepare the table (same as before)
+d.delayed_trains <- d.combined %>% 
+  filter(delay.category != "on time")
+
+total_trains_per_day <- d.combined %>%
+  group_by(weekday) %>%
+  summarise(total_trains = n())
+
+overview_delay_table <- d.delayed_trains %>%
+  group_by(weekday) %>%
+  summarise(
+    delay_count = n(),
+    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
+  ) %>%
+  left_join(total_trains_per_day, by = "weekday") %>%
+  mutate(
+    percentage_delayed_trains = (delay_count / total_trains) * 100,
+    weekday = factor(weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+  ) %>%
+  arrange(weekday)
+
+# Step 2: Create a beautiful table using `gt`
+overview_delay_table %>%
+  gt() %>%
+  tab_header(
+    title = "Summary of Train Delays by Weekday",
+    subtitle = "Total trains, delayed trains, and percentage delays"
+  ) %>%
+  fmt_number(
+    columns = c(avg_delay_seconds, percentage_delayed_trains),
+    decimals = 2
+  ) %>%
+  cols_label(
+    Weekday = "Weekday",
+    delay_count = "Delayed Trains",
+    avg_delay_seconds = "Average Delay (seconds)",
+    total_trains = "Total Trains",
+    percentage_delayed_trains = "Percentage Delayed (%)"
+  )
+```
+
 
 # Results
 
