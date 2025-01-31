@@ -318,7 +318,7 @@ Afterwards, to merge the data a left join method was chosen and carried out. The
 ```{r eval=FALSE, echo=TRUE, include=TRUE}
 ## Merge Weather Data into Train Dataset
 
-d.combined <- train_data_filtered %>% 
+d.combined <- d.train.compl %>% 
   left_join(d.weather, by = c("BETRIEBSTAG" = "Datum"))
 
 ```
