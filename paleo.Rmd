@@ -36,41 +36,39 @@ The first step in addressing the research question was to define the project sco
 For this study, data was sourced from [opentransportdata.swiss](https://opentransportdata.swiss/de/ist-daten-archiv/) and the [Schweizer Klimamessnetz](https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html).
 
 ## Tranport Data
+
 [opentransportdata.swiss](https://opentransportdata.swiss/de/ist-daten-archiv/) provides a structured dataset of the public transport in Switzerland.
 
-- Every month is provided as *.zip-File
-- Every day is provided as *.csv-File
-- Every row contains the arrival or departure of a public vehicle
+-   Every month is provided as \*.zip-File
+-   Every day is provided as \*.csv-File
+-   Every row contains the arrival or departure of a public vehicle
 
 ### Reduce dataset
 
-The whole dataset for the year 2024 is roughly ~150GB. Working with such a big data set in R is very time consuming and impractical. Therefore the dataset was reduce to a manageable size before working with R.
+The whole dataset for the year 2024 is roughly \~150GB. Working with such a big data set in R is very time consuming and impractical. Therefore the dataset was reduce to a manageable size before working with R.
 
-The filtering process below reduces the size of the final csv-File to only ~26MB which is way easier to handle than ~150GB.
+The filtering process below reduces the size of the final csv-File to only \~26MB which is way easier to handle than \~150GB.
 
-
-Step | Command | Description
-:-: | :-: | :-:
-1| [bash download_zip_files.sh](https://github.com/paACode/preprocessing_opentransportdata/blob/main/download_zip_files.sh)| Downloads all *.zip files from the year 2024
-2| [bash extract_luzern_to_csv.sh](https://github.com/paACode/preprocessing_opentransportdata/blob/main/extract_luzern_to_csv.sh)|  Filters for "trains" of "SBB" with destination "Lucerne"
+| Step |                                                            Command                                                             |                       Description                        |
+|:----------------------:|:----------------------:|:----------------------:|
+|  1   |    [bash download_zip_files.sh](https://github.com/paACode/preprocessing_opentransportdata/blob/main/download_zip_files.sh)    |      Downloads all \*.zip files from the year 2024       |
+|  2   | [bash extract_luzern_to_csv.sh](https://github.com/paACode/preprocessing_opentransportdata/blob/main/extract_luzern_to_csv.sh) | Filters for "trains" of "SBB" with destination "Lucerne" |
 
 In the end the colnames needed to be added again as they got lost during filtering.
 
 <details>
 
-<summary>Click to see Shell command </summary>
+<summary>Click to see Shell command</summary>
 
-``` 
+```         
 sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAME;PRODUKT_ID;LINIEN_ID;LINIEN_TEXT;UMLAUF_ID;VERKEHRSMITTEL_TEXT;ZUSATZFAHRT_TF;FAELLT_AUS_TF;BPUIC;HALTESTELLEN_NAME;ANKUNFTSZEIT;AN_PROGNOSE;AN_PROGNOSE_STATUS;ABFAHRTSZEIT;AB_PROGNOSE;AB_PROGNOSE_STATUS;DURCHFAHRT_TF" luzern_arrrivals_only.csv
 ```
+
 </details>
 
 <p>
 
-
 ### Data Preparation
-
-
 
 ```{r Import and Validate}
 #import libraries
@@ -88,8 +86,6 @@ test_that("Shell Scripts to reduce dataset worked?", {
   expect_equal(unique(d.train.raw$PRODUKT_ID), "Zug")
 })
 ```
-
-
 
 ```{r Clean Up}
 # Columns needed: 
@@ -112,8 +108,6 @@ d.train.filtered <-  d.train.raw %>%
   select(all_of(col.needed)) 
 
 ```
-
-
 
 ```{r Complete Dataset}
 
@@ -190,8 +184,6 @@ ggplot(data =d.train.compl, aes(x = delay.category)) +
 
 ```
 
-
-
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
 ## Weather Data
@@ -201,11 +193,11 @@ Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod 
 d.weather <- read.csv(file = "raw_weather_2024.csv", sep = ",")
 ```
 
-The Federal Office of Meteorology and Climatology MeteoSwiss publishes a wide range of data, including the dataset *<a href="https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html">Schweizer Klimamessnetz</a>*. This dataset contains the most climatologically significant ground-based measurement stations within MeteoSwiss's measurement network. It consists of 29 climate stations and 46 precipitation stations and includes daily average values of, for example, total snow depth, sunshine duration, precipitation, and air temperature.
+The Federal Office of Meteorology and Climatology MeteoSwiss publishes a wide range of data, including the dataset <a href="https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html">Schweizer Klimamessnetz</a>. This dataset contains the most climatologically significant ground-based measurement stations within MeteoSwiss's measurement network. It consists of 29 climate stations and 46 precipitation stations and includes daily average values of, for example, total snow depth, sunshine duration, precipitation, and air temperature.
 
 ### Data Preprocessing
 
-The measurement data from *<a href="https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html">Schweizer Klimamessnetz</a>* is available in separate CSV files for each station and day. To maintain manageable complexity for analysis within the scope of this module, all measurement values from the 29 different measurement stations were aggregated, and an average value per measurement unit per day was calculated. This preprocessing was performed using a Python script.
+The measurement data from <a href="https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html">Schweizer Klimamessnetz</a> is available in separate CSV files for each station and day. To maintain manageable complexity for analysis within the scope of this module, all measurement values from the 29 different measurement stations were aggregated, and an average value per measurement unit per day was calculated. This preprocessing was performed using a Python script.
 
 <details>
 
@@ -293,13 +285,13 @@ d.weather %>%
 
 ```
 
-
 Finally, we obtained an average weather dataset for Switzerland for the year 2024, based on the most important ground measurement stations within the MeteoSwiss network.
 
 ## Merge train data with weather data
 
 ### Prepare dataset for merge
-In order to carry out the merge it was observed that the data format of the data set *raw_weather_2024.csv* was different to the format of the *raw_transport_2024.csv*. Therefor the format was manipulated so that both datasets have the same date formate. 
+
+In order to carry out the merge it was observed that the data format of the data set *raw_weather_2024.csv* was different to the format of the *raw_transport_2024.csv*. Therefor the format was manipulated so that both datasets have the same date formate.
 
 ```{r echo=TRUE, include=TRUE}
 ## Transform date format for further analysis
@@ -315,6 +307,7 @@ head(d.weather$Datum)
 ```
 
 ### Merge the data
+
 Afterwards, to merge the data a left join method was chosen and carried out. The ID used for the merge was the prior prepared date column.
 
 ```{r echo=TRUE, include=TRUE}
@@ -325,15 +318,29 @@ d.combined <- d.train.compl %>%
 
 ```
 
-
 # Data Analysis
-
 
 This analysis chapter examines the temporal and categorical patterns of train delays affecting MadeUpCompany AG employees arriving in Lucerne. By analyzing public transport data from 2024 onward, combined with Swiss weather data, the study investigates delay frequency, duration, and their distribution across weekdays and months. Key metrics, including total and delayed train counts, delay severity, and weather influence, are evaluated to identify trends that could inform effective countermeasures. Through statistical summaries and visualizations, the analysis aims to provide precise, data-driven recommendations to enhance production reliability by mitigating transport-related disruptions.
 
 ## Overview of Data
-In order to obtain a overview of the obtained data, the following table was created.
-```{r Overview Table, echo=FALSE, message = FALSE}
+
+As a first step to get an better understanding of the data set we plotted delays and air temperature. From this first impression plot, we observed that there does not seem to be a clear, strong linear relationship between air temperature ("Lufttemperatur") and the delay. The points are widely scattered and the regression line appears mostly flat. Further, there is a dense clustering of points around zero on the y-axis, indicating that a large number of observations have minimal or no delays, regardless of the air temperature. There are several noticeable outliers where delays exceed 50 minutes, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees there seems to be a higher delay suggesting further analysis also regarding percipitation. Although the use of jittering is helping to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
+
+```{r Delay in relation to air temperature, include=TRUE, message=FALSE}
+ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
+  geom_jitter(color = "blue", width = 0.2, height = 0.2, alpha = 0.6) + 
+  geom_smooth(method = "lm", color = "orange", se = FALSE) + 
+  labs(title = "Scatter Plot with Jitter and Regression Line",
+       x = "Lufttemperatur",
+       y = "Delay (min)") +
+  theme_minimal()
+```
+
+The "Scatter Plot with Jitter and Regression Line" serves as a representative example of the weak relationship observed between weather variables and train delays overall. This suggests that while weather may not be a primary driver of delays, further analysis of potential correlations between delayed trains and specific weather conditions could still reveal hidden patterns. However, before delving into these correlations, it is essential to first conduct a detailed analysis of delay patterns at the weekday and seasonal levels, as seen in the current summary table.
+
+The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into scheduling or operational adjustments to reduce delays.
+
+```{r Overview Table, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
 library(gt)
 
@@ -389,6 +396,9 @@ overview_delay_table %>%
 
 ```
 
+Question: At which weekday are more extreme delays? -> Boxplot with the outliers could show 
+
+Question: At which time e.g. on thursdays is the delay the most?
 
 # Results
 
