@@ -70,8 +70,45 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 ### Data Preparation
 
 ```{r}
-# Histogram: Overview
-# 
+#import libraries
+library(testthat)
+library(dplyr)
+library(ggplot2)
+#general settings
+Sys.setenv(LANG = "en")
+#
+train.raw <-  read.csv(file = "raw_transport_2024.csv", sep = ";")
+
+test_that("Shell Scripts to reduce dataset worked?", {
+  expect_equal(unique(train.raw$BETREIBER_ABK), "SBB")
+  expect_equal(unique(train.raw$HALTESTELLEN_NAME), "Luzern")
+  expect_equal(unique(train.raw$PRODUKT_ID), "Zug")
+})
+
+
+# Columns needed: 
+# More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
+# "BETRIEBSTAG" : categorizing weekday/month/season, merging weather 
+# "LINIEN_TEXT" :describing the train category IC, S1 , IR16
+# "ANKUNFTSZEIT" : calculation of delay
+# "AN_PROGNOSE" : calculation of delay
+
+col.needed <-  c("BETRIEBSTAG",
+                 "LINIEN_TEXT",
+                 "ANKUNFTSZEIT",
+                 "AN_PROGNOSE")
+
+#Filter 
+train.filtered <-  train.raw %>%
+  filter(ANKUNFTSZEIT != "") %>% #Remove trains starting from lucerne
+  filter(AN_PROGNOSE != "") %>% #Remove trains where delay calc. not possible
+  filter(AN_PROGNOSE_STATUS == "REAL") %>%  #Only consider REAL arrival times
+  select(all_of(col.needed)) 
+
+#Calc Delay
+
+#First Histogramm Plot
+
 ```
 
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
