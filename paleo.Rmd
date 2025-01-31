@@ -69,6 +69,8 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 
 ### Data Preparation
 
+
+
 ```{r Import and Validate}
 #import libraries
 library(testthat)
@@ -77,14 +79,16 @@ library(ggplot2)
 #general settings
 Sys.setenv(LANG = "en")
 #
-train.raw <-  read.csv(file = "raw_transport_2024.csv", sep = ";")
+d.train.raw <-  read.csv(file = "raw_transport_2024.csv", sep = ";")
 
 test_that("Shell Scripts to reduce dataset worked?", {
-  expect_equal(unique(train.raw$BETREIBER_ABK), "SBB")
-  expect_equal(unique(train.raw$HALTESTELLEN_NAME), "Luzern")
-  expect_equal(unique(train.raw$PRODUKT_ID), "Zug")
+  expect_equal(unique(d.train.raw$BETREIBER_ABK), "SBB")
+  expect_equal(unique(d.train.raw$HALTESTELLEN_NAME), "Luzern")
+  expect_equal(unique(d.train.raw$PRODUKT_ID), "Zug")
 })
 ```
+
+
 
 ```{r Clean Up}
 # Columns needed: 
@@ -100,7 +104,7 @@ col.needed <-  c("BETRIEBSTAG",
                  "AN_PROGNOSE")
 
 #Filter 
-train.filtered <-  train.raw %>%
+d.train.filtered <-  d.train.raw %>%
   filter(ANKUNFTSZEIT != "") %>% #Remove trains starting from lucerne
   filter(AN_PROGNOSE != "") %>% #Remove trains where delay calc. not possible
   filter(AN_PROGNOSE_STATUS == "REAL") %>%  #Only consider REAL arrival times
@@ -108,10 +112,61 @@ train.filtered <-  train.raw %>%
 
 ```
 
+
+
 ```{r Complete Dataset}
-#Calc Delay
-#Weekdays
-#Months
+
+#' Calculate delay
+#'
+#' This function calculates the  delay of arriving trains.
+#'
+#' @param exp.time 
+#' @param exp.time.format 
+#' @param actual.time  
+#'
+#' @return delay in seconds
+#' @examples
+#' # Calculate the area of a 5 by 10 rectangle
+#' calculate_area(5, 10)
+calc.delay.s <- function(exp.time,
+                         exp.time.format,
+                         actual.time,
+                         actual.time.format) {
+  test_that("Correct Function inputs?", {
+    expect_equal(length(exp.time), length(actual.time))
+    expect_equal(
+      class(exp.time.format),
+      class(actual.time.format),
+      class(exp.time),
+      class(actual.time),
+      "character"
+    )
+  })
+  
+  actual.time_ <- as.POSIXct(actual.time, format = actual.time.format)
+  exp.time_ <- as.POSIXct(exp.time, format = exp.time.format)
+  
+  delay.s <- as.numeric(difftime(exp.time_, actual.time_))
+  return(delay.s)
+  
+}
+#Create a new dataset that will be complemented with additional information
+d.train.compl <-  d.train.filtered
+
+#Calculate Delay and add to Dataset
+d.train.compl$delay.calc.s <- calc.delay.s(
+  exp.time = d.train.filtered$ANKUNFTSZEIT,
+  exp.time.format = "%d.%m.%Y %H:%M",# SBB provides min accuracy
+  actual.time = d.train.filtered$AN_PROGNOSE,
+  actual.time.format = "%d.%m.%Y %H:%M:%S" # Meas accuracy in seconds
+)
+
+
+
+#Add Weekdays
+d.train.compl$weekday <- weekdays(as.Date(d.train.compl$BETRIEBSTAG, 
+                                          format = "%d.%m.%Y"))
+
 #...
 
 ```
