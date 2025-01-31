@@ -69,7 +69,7 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 
 ### Data Preparation
 
-```{r}
+```{r Import and Validate}
 #import libraries
 library(testthat)
 library(dplyr)
@@ -84,8 +84,9 @@ test_that("Shell Scripts to reduce dataset worked?", {
   expect_equal(unique(train.raw$HALTESTELLEN_NAME), "Luzern")
   expect_equal(unique(train.raw$PRODUKT_ID), "Zug")
 })
+```
 
-
+```{r Clean Up}
 # Columns needed: 
 # More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
 # "BETRIEBSTAG" : categorizing weekday/month/season, merging weather 
@@ -105,11 +106,23 @@ train.filtered <-  train.raw %>%
   filter(AN_PROGNOSE_STATUS == "REAL") %>%  #Only consider REAL arrival times
   select(all_of(col.needed)) 
 
+```
+
+```{r Complete Dataset}
 #Calc Delay
+#Weekdays
+#Months
+#...
+
+```
+
+```{r First Plot}
 
 #First Histogramm Plot
 
 ```
+
+
 
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
 
