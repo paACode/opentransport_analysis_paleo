@@ -23,13 +23,16 @@ Three possible countermeasure were identified:
 
 -   Adjust shift start times based on transportation reliability.
 -   Implement seasonal adjustments to production capacity based on weather-related transportation disruptions.
--   Consider regional hiring preferences to mitigate dependency on unreliable train routes.
+-   Consider train categories to mitigate dependency on unreliable train routes.
+-   Use weather data and forecasts to predict possible delays
 
-The goal of the Data Science students is to provide MadeUpCompany AG with an insightful report, analyzing publicly available data.
+The goal of the Data Science students is to provide MadeUpCompany AG with an insightful report, analyzing publicly available data, to see which of the countermeasures could be most effective.
 
 # Exploring Data
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+The first step in addressing the research question was to define the project scope and select suitable datasets. The analysis focuses specifically on public transport data for trains arriving in Lucerne, as MadeUpCompany AG is based there. Data from 2024 onward serves as the foundation for more advanced analysis. Additionally, weather data should reflect average Swiss values as a daily baseline.
+
+For this study, data was sourced from [opentransportdata.swiss](https://opentransportdata.swiss/de/ist-daten-archiv/) and the [Schweizer Klimamessnetz](https://www.meteoschweiz.admin.ch/wetter/messsysteme/bodenstationen/schweizer-klimamessnetz.html).
 
 ## Tranport Data
 
