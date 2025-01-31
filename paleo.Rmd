@@ -123,15 +123,14 @@ d.train.filtered <-  d.train.raw %>%
 #' @param exp.time 
 #' @param exp.time.format 
 #' @param actual.time  
-#'
+#' @param exp.time.format 
+#' @param negative.delays If set to True all negative delays are set to 0
 #' @return delay in seconds
-#' @examples
-#' # Calculate the area of a 5 by 10 rectangle
-#' calculate_area(5, 10)
 calc.delay.s <- function(exp.time,
                          exp.time.format,
                          actual.time,
-                         actual.time.format) {
+                         actual.time.format,
+                         negative.delays = TRUE) {
   test_that("Correct Function inputs?", {
     expect_equal(length(exp.time), length(actual.time))
     expect_equal(
@@ -145,8 +144,8 @@ calc.delay.s <- function(exp.time,
   
   actual.time_ <- as.POSIXct(actual.time, format = actual.time.format)
   exp.time_ <- as.POSIXct(exp.time, format = exp.time.format)
-  
   delay.s <- as.numeric(difftime(exp.time_, actual.time_))
+  # To do : Need to implement negative delays = 0
   return(delay.s)
   
 }
@@ -166,9 +165,6 @@ d.train.compl$delay.calc.s <- calc.delay.s(
 #Add Weekdays
 d.train.compl$weekday <- weekdays(as.Date(d.train.compl$BETRIEBSTAG, 
                                           format = "%d.%m.%Y"))
-
-#...
-
 ```
 
 ```{r First Plot}
