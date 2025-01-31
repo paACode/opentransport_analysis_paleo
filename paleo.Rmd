@@ -395,7 +395,9 @@ overview_delay_table %>%
   )
 
 ```
-Similarly to the prior table, the following graph reveals delay patterns on a monthly level.
+While weekday patterns highlight operational challenges tied to daily traffic, the broader picture of train delays requires an exploration of monthly trends to capture potential seasonal effects. The "Monthly Overview of Train Delays" reveals further insights into how these factors evolve over time.
+
+The average delay time remains relatively stable between 80 and 110 seconds for most months, but a significant spike in December suggests potential disruptions, possibly due to adverse weather conditions or holiday-related scheduling issues. Interestingly, despite this increase in delay duration, the number of delayed trains in December shows a noticeable decline, indicating fewer train operations during this period. Throughout the rest of the year, the number of delayed trains remains consistently high, with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains remains persistently high at around 60% throughout the year, suggesting that delays are a systemic issue and not solely driven by seasonal factors. This consistent delay rate points to possible underlying operational or structural challenges that require further investigation.
 
 ```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
