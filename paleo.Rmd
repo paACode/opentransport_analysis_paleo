@@ -332,7 +332,7 @@ This analysis chapter examines the temporal and categorical patterns of train de
 
 ## Overview of Data
 In order to obtain a overview of the obtained data, the following table was created.
-```{r Overview Table, echo=FALSE, include=FALSE, message=FALSE}
+```{r Overview Table, echo=FALSE, message=FALSE}
 library(dplyr)
 library(gt)
 
@@ -375,6 +375,7 @@ overview_delay_table %>%
     total_trains = "Total Trains",
     percentage_delayed_trains = "Delayed (%)"
   )
+
 ```
 
 
