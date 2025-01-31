@@ -340,7 +340,7 @@ The "Scatter Plot with Jitter and Regression Line" serves as a representative ex
 
 The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into scheduling or operational adjustments to reduce delays.
 
-```{r Overview Table, echo=FALSE, message = FALSE, include=TRUE}
+```{r Overview Weekdays Table, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
 library(gt)
 
@@ -393,6 +393,89 @@ overview_delay_table %>%
     total_trains = "Total Trains",
     percentage_delayed_trains = "Delayed (%)"
   )
+
+```
+Similarly to the prior table, the following graph reveals delay patterns on a monthly level.
+
+```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
+library(dplyr)
+library(gt)
+
+## Step 1: Prepare the table for months (similar to the weekday table)
+## count total trains per month
+total_trains_per_month <- d.combined %>%
+  group_by(month) %>%
+  summarise(total_trains = n())
+
+## create table with train count, delay avg, and delayed train count by month
+overview_month_delay_table <- d.delayed_trains %>%
+  group_by(month) %>%
+  summarise(delay_count = n(),
+            avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)) %>%
+  left_join(total_trains_per_month, by = "month") %>%
+  mutate(
+    percentage_delayed_trains = (delay_count / total_trains) * 100,
+    month = factor(
+      month,
+      levels = c(
+        "January", "February", "March", "April", "May", "June", 
+        "July", "August", "September", "October", "November", "December"
+      )
+    )
+  ) %>%
+  arrange(month)
+
+# Step 2: Create a beautiful table using `gt`
+overview_month_delay_table %>%
+  gt() %>%
+  tab_header(title = "Summary of Train Delays by Month", subtitle = "Total trains, delayed trains, and percentage delays") %>%
+  fmt_number(
+    columns = c(avg_delay_seconds, percentage_delayed_trains),
+    decimals = 2
+  ) %>%
+  cols_label(
+    month = "Month",
+    delay_count = "Delayed Trains",
+    avg_delay_seconds = "Average Delay (s)",
+    total_trains = "Total Trains",
+    percentage_delayed_trains = "Delayed (%)"
+  )
+
+```
+```{r Overview Months Delays, echo=FALSE, message = FALSE, include=TRUE}
+# Reshape the table for long format (needed for facetting)
+library(tidyr)
+
+long_delay_table <- overview_month_delay_table %>%
+  pivot_longer(cols = c(delay_count, avg_delay_seconds, percentage_delayed_trains),
+               names_to = "Metric", values_to = "Value")
+
+# Create the faceted plot
+ggplot(long_delay_table, aes(x = month, y = Value, fill = Metric)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ Metric, scales = "free_y", ncol = 1) +
+  scale_fill_manual(values = c("steelblue", "darkorange", "darkgreen")) +
+  labs(
+    title = "Monthly Overview of Train Delays",
+    x = "Month",
+    y = "Value"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r Average Delay Duration by Month, , echo=FALSE, message = FALSE, include=TRUE}
+ggplot(overview_month_delay_table, aes(x = month, y = avg_delay_seconds, group = 1)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(size = 2, color = "darkred") +
+  labs(
+    title = "Average Delay Duration by Month",
+    x = "Month",
+    y = "Average Delay (seconds)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
