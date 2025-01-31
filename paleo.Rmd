@@ -10,7 +10,8 @@ output: html_document
 library(knitr)
 opts_chunk$set(echo = FALSE ,
                include = FALSE,
-               comment = NA)
+               comment = NA,
+               eval = TRUE)
 ```
 
 # Introduction
@@ -277,7 +278,7 @@ print(f"The merged file with updated column names has been saved to: {output_fil
 
 In addition to merging and averaging the individual measurement values, the dataset's labels were also renamed for readability. For example, *tre200d0* was renamed to *Lufttemperatur*.
 
-```{r eval=TRUE, echo=FALSE, include=TRUE, message=FALSE}
+```{r echo=FALSE, include=TRUE, message=FALSE}
 ## Display weather data
 library(dplyr)
 
@@ -300,7 +301,7 @@ Finally, we obtained an average weather dataset for Switzerland for the year 202
 ### Prepare dataset for merge
 In order to carry out the merge it was observed that the data format of the data set *raw_weather_2024.csv* was different to the format of the *raw_transport_2024.csv*. Therefor the format was manipulated so that both datasets have the same date formate. 
 
-```{r eval=FALSE, echo=TRUE, include=TRUE}
+```{r echo=TRUE, include=TRUE}
 ## Transform date format for further analysis
 ## Ensure the column is interpreted as a character string
 d.weather$Datum <- as.character(d.weather$Datum)
@@ -315,7 +316,7 @@ head(d.weather$Datum)
 
 Afterwards, to merge the data a left join method was chosen and carried out. The ID used for the merge was the prior prepared date column.
 
-```{r eval=FALSE, echo=TRUE, include=TRUE}
+```{r echo=TRUE, include=TRUE}
 ## Merge Weather Data into Train Dataset
 
 d.combined <- d.train.compl %>% 
@@ -331,7 +332,7 @@ This analysis chapter examines the temporal and categorical patterns of train de
 
 ## Overview of Data
 In order to obtain a overview of the obtained data, the following table was created.
-```{r Overview Table eval=TRUE, echo=FALSE, include=TRUE, message=FALSE}
+```{r Overview Table, echo=FALSE, include=FALSE, message=FALSE}
 library(dplyr)
 library(gt)
 
@@ -368,11 +369,11 @@ overview_delay_table %>%
     decimals = 2
   ) %>%
   cols_label(
-    Weekday = "Weekday",
+    weekday = "weekday",
     delay_count = "Delayed Trains",
-    avg_delay_seconds = "Average Delay (seconds)",
+    avg_delay_seconds = "Average Delay (s)",
     total_trains = "Total Trains",
-    percentage_delayed_trains = "Percentage Delayed (%)"
+    percentage_delayed_trains = "Delayed (%)"
   )
 ```
 
