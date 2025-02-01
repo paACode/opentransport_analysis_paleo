@@ -411,9 +411,42 @@ ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
   theme_minimal()
 ```
 
-The "Scatter Plot with Jitter and Regression Line" serves as a representative example of the weak relationship observed between weather variables and train delays overall. This suggests that while weather may not be a primary driver of delays, further analysis of potential correlations between delayed trains and specific weather conditions could still reveal hidden patterns. However, before delving into these correlations, it is essential to first conduct a detailed analysis of delay patterns at the weekday and seasonal levels, as seen in the current summary table.
+The "Scatter Plot with Jitter and Regression Line" serves as a representative example of the weak relationship observed between weather variables and train delays overall. This suggests that while weather may not be a primary driver of delays, further analysis of potential correlations between delayed trains and specific weather conditions could still reveal hidden patterns. However, before delving into these correlations, it is essential to first conduct a detailed analysis of delay patterns at the weekday and seasonal levels.
 
-## A Monthly and Weekday Perspective
+## A Seasonal, Monthly and Weekday Perspective
+
+As an initial step, it makes sense to examine the seasonal patterns of train delays. Overall, the delays appear to be quite consistent across all four seasons. The summary statistics presented below reveal that, on average, delays remain steady throughout the year, with no significant fluctuations from one season to the next.
+
+
+```{r Seaonsal analysis statistics, include=TRUE}
+d.delayed_trains <- d.combined %>% 
+  filter(delay.category != "on time")
+
+season.tbl <- d.delayed_trains %>%
+  group_by(season) %>%
+  summarise(
+    Min = min(delay.calc.min, na.rm = TRUE),
+    `1st Qu.` = quantile(delay.calc.min, 0.25, na.rm = TRUE),
+    Median = median(delay.calc.min, na.rm = TRUE),
+    Mean = mean(delay.calc.min, na.rm = TRUE),
+    `3rd Qu.` = quantile(delay.calc.min, 0.75, na.rm = TRUE),
+    Max = max(delay.calc.min, na.rm = TRUE)
+  )
+kable(season.tbl, caption = "Summary of Train Delays by Season")
+```
+
+However, upon further inspection with a jittered boxplot , we observe that the Fall season exhibits a higher frequency of outliers compared to the other seasons. Interestingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. This can potentially be explained by the fact that in November, the first snowfall typically occurs, which could challenge operations as SBB (Swiss Federal Railways) adjusts to adverse weather conditions. Further weather analysis in subsequent chapters will explore this aspect in more detail, offering a clearer understanding of how weather impacts delays, especially in the winter months.
+
+```{r Season Boxplot, include = TRUE}
+ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
+    geom_jitter(aes(color = season), width = 0.2, alpha = 0.5) +
+    geom_boxplot(outlier.shape = NA) +  
+
+    scale_y_sqrt()
+
+
+```
+
 
 Following the seasonal analysis, it is crucial to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The “Monthly Overview of Train Delays” was specifically chosen to illustrate how delays fluctuate over time, helping to highlight critical monthly trends and complement the broader seasonal analysis.
 
