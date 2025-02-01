@@ -514,6 +514,82 @@ Question: At which weekday are more extreme delays? -> Boxplot with the outliers
 
 Question: At which time e.g. on thursdays is the delay the most?
 
+```{r Analizing Delays on hourly timeframe basis}
+library(dplyr)
+library(lubridate)
+
+# Step 1: Convert ANKUNFTSZEIT to proper datetime format
+d.combined <- d.combined %>%
+  mutate(datetime_ankunft = dmy_hm(ANKUNFTSZEIT))  # Parse as datetime
+
+# Step 2: Extract the time portion and the hour
+d.combined <- d.combined %>%
+  mutate(
+    time_only = format(datetime_ankunft, "%H:%M"),  # Extract time as HH:MM string
+    hour = hour(datetime_ankunft)                   # Extract the hour as numeric
+  )
+
+# Step 3: Create time windows for analysis
+d.combined <- d.combined %>%
+  mutate(timeframe = case_when(
+    hour >= 4 & hour < 5 ~ "4:00 - 5:00",
+    hour >= 5 & hour < 6 ~ "5:00 - 6:00",
+    hour >= 6 & hour < 7 ~ "6:00 - 7:00",
+    hour >= 7 & hour < 8 ~ "7:00 - 8:00",
+    hour >= 8 & hour < 9 ~ "8:00 - 9:00",
+    TRUE ~ "Other"
+  ))
+
+# Step 4: Filter delayed trains
+d.delayed_trains <- d.combined %>%
+  filter(delay.category != "on time")
+
+# Step 5: Count total trains per time window
+total_trains_per_timeframe <- d.combined %>%
+  group_by(timeframe) %>%
+  summarise(total_trains = n())
+
+# Step 6: Summarize delayed trains by time window
+overview_time_delay_table <- d.delayed_trains %>%
+  group_by(timeframe) %>%
+  summarise(
+    delay_count = n(),
+    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
+  ) %>%
+  
+  # Step 7: Join with the total trains per time window
+  left_join(total_trains_per_timeframe, by = "timeframe") %>%
+  
+  # Step 8: Calculate the percentage of delayed trains
+  mutate(
+    percentage_delayed_trains = (delay_count / total_trains) * 100
+  ) %>%
+  
+  # Step 9: Sort by time window
+  arrange(timeframe)
+
+# Display the table
+overview_time_delay_table %>%
+  gt() %>%
+  tab_header(
+    title = "Summary of Train Delays by Time Window",
+    subtitle = "Total trains, delayed trains, and percentage delays"
+  ) %>%
+  fmt_number(
+    columns = c(avg_delay_seconds, percentage_delayed_trains),
+    decimals = 2
+  ) %>%
+  cols_label(
+    timeframe = "Time Window",
+    delay_count = "Delayed Trains",
+    avg_delay_seconds = "Average Delay (s)",
+    total_trains = "Total Trains",
+    percentage_delayed_trains = "Delayed (%)"
+  )
+
+```
+
+
 ## Assessing the Impact of Weather on Train Delays
 - Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
 
