@@ -564,7 +564,89 @@ Question: At which weekday are more extreme delays? -> Boxplot with the outliers
 
 Question: At which time e.g. on thursdays is the delay the most?
 
-```{r Analizing Delays on hourly timeframe basis, echo=FALSE, message = FALSE, include=TRUE}
+
+Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior**. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.  
+
+The **line chart of the percentage of delayed trains** was chosen as it effectively highlights the **frequency of delayed trains** across different time windows, allowing us to identify key periods where delays are most common. However, this visualization does not capture the **severity of the delays**, which also requires further analysis to understand their impact on punctuality and overall operations.
+
+The plot illustrates the percentage of delayed trains across different time windows throughout the day, revealing distinct patterns linked to train traffic and operational challenges. For workers starting their **06:00 shift**, the key arrival window is between **05:00 and 05:30**. The plot shows **moderately high delay percentages of around 60% during this time window**, which, although lower than the peak at **06:00-08:00**, still poses a **moderate risk to worker punctuality**. Any delays during this period could lead to last-minute arrivals or missed shifts, suggesting that targeted measures to reduce early morning delays may improve reliability.
+
+The next critical window is for workers starting the **14:00 shift**, who need to arrive between **13:00 and 13:30**. The plot shows **relatively low delay percentages (around 40% to 50%) during this time frame**, indicating **smoother operations** and a **reduced risk of transport-related disruptions** compared to the morning.  
+
+For the **22:00 shift**, workers must arrive between **21:00 and 21:30**. During this window, the plot indicates **delay rates of around 50%**, which are not as severe as during the morning or evening rush hours, but still pose a **potential punctuality risk** due to the cumulative nature of delays from the evening period (17:00 to 20:00).  
+
+These observations highlight the need for **targeted interventions during the early morning (05:00 to 05:30)**, where delays may pose the highest risk to on-time arrivals. Additionally, the **moderate but manageable delays in the evening (21:00 to 21:30)** suggest that ensuring smooth evening operations could prevent issues for the night shift. The **off-peak period before the 14:00 shift** appears less problematic, providing an opportunity to allocate maintenance or optimize train schedules. By focusing on these key time windows, precise countermeasures can be developed to **minimize transport-related disruptions and improve production reliability** for MadeUpCompany AG.
+
+
+
+```{r Delay per Time Window Line Chart, echo=FALSE, message = FALSE, include=TRUE}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# Step 1: Convert ANKUNFTSZEIT to proper datetime format
+d.combined <- d.combined %>%
+  mutate(datetime_ankunft = dmy_hm(ANKUNFTSZEIT))  # Parse as datetime
+
+# Step 2: Extract the time portion and the hour
+d.combined <- d.combined %>%
+  mutate(
+    time_only = format(datetime_ankunft, "%H:%M"),  # Extract time as HH:MM string
+    hour = hour(datetime_ankunft)                   # Extract the hour as numeric
+  )
+
+# Step 3: Create hourly time windows for analysis covering the full day
+d.combined <- d.combined %>%
+  mutate(timeframe = paste0(sprintf("%02d", hour), ":00 - ", sprintf("%02d", (hour + 1) %% 24), ":00"))
+
+# Step 4: Filter delayed trains
+d.delayed_trains <- d.combined %>%
+  filter(delay.category != "on time")
+
+# Step 5: Count total trains per time window
+total_trains_per_timeframe <- d.combined %>%
+  group_by(timeframe) %>%
+  summarise(total_trains = n())
+
+# Step 6: Summarize delayed trains by time window
+overview_time_delay_table <- d.delayed_trains %>%
+  group_by(timeframe) %>%
+  summarise(
+    delay_count = n(),
+    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
+  ) %>%
+  
+  # Step 7: Join with the total trains per time window
+  left_join(total_trains_per_timeframe, by = "timeframe") %>%
+  
+  # Step 8: Calculate the percentage of delayed trains
+  mutate(
+    percentage_delayed_trains = (delay_count / total_trains) * 100
+  ) %>%
+  
+  # Step 9: Convert timeframe to a factor and sort
+  mutate(timeframe = factor(
+    timeframe,
+    levels = paste0(sprintf("%02d", 0:23), ":00 - ", sprintf("%02d", 1:24 %% 24), ":00")
+  )) %>%
+  arrange(timeframe)
+
+# Step 10: Create the line graph
+ggplot(overview_time_delay_table, aes(x = timeframe, y = percentage_delayed_trains, group = 1)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  labs(
+    title = "Percentage of Delayed Trains by Time Window",
+    x = "Time Window",
+    y = "Percentage of Delayed Trains (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+```{r Analizing Delays on hourly timeframe basis, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
 library(lubridate)
 library(gt)
@@ -661,71 +743,7 @@ overview_time_delay_table %>%
 
 
 ```
-```{r Delay per Time Window Line Chart, echo=FALSE, message = FALSE, include=TRUE}
-library(dplyr)
-library(lubridate)
-library(ggplot2)
 
-# Step 1: Convert ANKUNFTSZEIT to proper datetime format
-d.combined <- d.combined %>%
-  mutate(datetime_ankunft = dmy_hm(ANKUNFTSZEIT))  # Parse as datetime
-
-# Step 2: Extract the time portion and the hour
-d.combined <- d.combined %>%
-  mutate(
-    time_only = format(datetime_ankunft, "%H:%M"),  # Extract time as HH:MM string
-    hour = hour(datetime_ankunft)                   # Extract the hour as numeric
-  )
-
-# Step 3: Create hourly time windows for analysis covering the full day
-d.combined <- d.combined %>%
-  mutate(timeframe = paste0(sprintf("%02d", hour), ":00 - ", sprintf("%02d", (hour + 1) %% 24), ":00"))
-
-# Step 4: Filter delayed trains
-d.delayed_trains <- d.combined %>%
-  filter(delay.category != "on time")
-
-# Step 5: Count total trains per time window
-total_trains_per_timeframe <- d.combined %>%
-  group_by(timeframe) %>%
-  summarise(total_trains = n())
-
-# Step 6: Summarize delayed trains by time window
-overview_time_delay_table <- d.delayed_trains %>%
-  group_by(timeframe) %>%
-  summarise(
-    delay_count = n(),
-    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
-  ) %>%
-  
-  # Step 7: Join with the total trains per time window
-  left_join(total_trains_per_timeframe, by = "timeframe") %>%
-  
-  # Step 8: Calculate the percentage of delayed trains
-  mutate(
-    percentage_delayed_trains = (delay_count / total_trains) * 100
-  ) %>%
-  
-  # Step 9: Convert timeframe to a factor and sort
-  mutate(timeframe = factor(
-    timeframe,
-    levels = paste0(sprintf("%02d", 0:23), ":00 - ", sprintf("%02d", 1:24 %% 24), ":00")
-  )) %>%
-  arrange(timeframe)
-
-# Step 10: Create the line graph
-ggplot(overview_time_delay_table, aes(x = timeframe, y = percentage_delayed_trains, group = 1)) +
-  geom_line(color = "steelblue", size = 1) +
-  geom_point(color = "darkred", size = 2) +
-  labs(
-    title = "Percentage of Delayed Trains by Time Window",
-    x = "Time Window",
-    y = "Percentage of Delayed Trains (%)"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
 
 
 ## Assessing the Impact of Weather on Train Delays
