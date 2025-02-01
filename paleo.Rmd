@@ -509,12 +509,12 @@ ggplot(overview_month_delay_table, aes(x = month, y = avg_delay_seconds, group =
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
-
+-> Update Y-Axis and start from 50s ! -> better comparability in chart
 Question: At which weekday are more extreme delays? -> Boxplot with the outliers could show 
 
 Question: At which time e.g. on thursdays is the delay the most?
 
-```{r Analizing Delays on hourly timeframe basis}
+```{r Analizing Delays on hourly timeframe basis, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
 library(lubridate)
 
@@ -537,6 +537,17 @@ d.combined <- d.combined %>%
     hour >= 6 & hour < 7 ~ "6:00 - 7:00",
     hour >= 7 & hour < 8 ~ "7:00 - 8:00",
     hour >= 8 & hour < 9 ~ "8:00 - 9:00",
+    hour >= 9 & hour < 10 ~ "9:00 - 10:00",
+    hour >= 10 & hour < 11 ~ "10:00 - 11:00",
+    hour >= 11 & hour < 12 ~ "11:00 - 12:00",
+    hour >= 12 & hour < 13 ~ "12:00 - 13:00",
+    hour >= 13 & hour < 14 ~ "13:00 - 14:00",
+    hour >= 14 & hour < 15 ~ "14:00 - 15:00",
+    hour >= 18 & hour < 19 ~ "18:00 - 19:00",
+    hour >= 19 & hour < 20 ~ "19:00 - 20:00",
+    hour >= 20 & hour < 21 ~ "20:00 - 21:00",
+    hour >= 21 & hour < 22 ~ "21:00 - 22:00",
+    hour >= 22 & hour < 23 ~ "22:00 - 23:00",
     TRUE ~ "Other"
   ))
 
@@ -588,7 +599,7 @@ overview_time_delay_table %>%
   )
 
 ```
-
+-> filter nach delays only
 
 ## Assessing the Impact of Weather on Train Delays
 - Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
