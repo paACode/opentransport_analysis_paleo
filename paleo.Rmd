@@ -517,6 +517,7 @@ Question: At which time e.g. on thursdays is the delay the most?
 ```{r Analizing Delays on hourly timeframe basis, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
 library(lubridate)
+library(gt)
 
 # Step 1: Convert ANKUNFTSZEIT to proper datetime format
 d.combined <- d.combined %>%
@@ -576,10 +577,20 @@ overview_time_delay_table <- d.delayed_trains %>%
     percentage_delayed_trains = (delay_count / total_trains) * 100
   ) %>%
   
-  # Step 9: Sort by time window
+  # Step 9: Convert timeframe to a factor with the correct order and sort
+  mutate(timeframe = factor(
+    timeframe,
+    levels = c(
+      "4:00 - 5:00", "5:00 - 6:00", "6:00 - 7:00", "7:00 - 8:00",
+      "8:00 - 9:00", "9:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00",
+      "12:00 - 13:00", "13:00 - 14:00", "14:00 - 15:00", 
+      "18:00 - 19:00", "19:00 - 20:00", "20:00 - 21:00",
+      "21:00 - 22:00", "22:00 - 23:00", "Other"
+    )
+  )) %>%
   arrange(timeframe)
 
-# Display the table
+# Display the table using gt
 overview_time_delay_table %>%
   gt() %>%
   tab_header(
@@ -598,8 +609,74 @@ overview_time_delay_table %>%
     percentage_delayed_trains = "Delayed (%)"
   )
 
+
 ```
--> filter nach delays only
+```{r Delay per Time Window Line Chart, }
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# Step 1: Convert ANKUNFTSZEIT to proper datetime format
+d.combined <- d.combined %>%
+  mutate(datetime_ankunft = dmy_hm(ANKUNFTSZEIT))  # Parse as datetime
+
+# Step 2: Extract the time portion and the hour
+d.combined <- d.combined %>%
+  mutate(
+    time_only = format(datetime_ankunft, "%H:%M"),  # Extract time as HH:MM string
+    hour = hour(datetime_ankunft)                   # Extract the hour as numeric
+  )
+
+# Step 3: Create hourly time windows for analysis covering the full day
+d.combined <- d.combined %>%
+  mutate(timeframe = paste0(sprintf("%02d", hour), ":00 - ", sprintf("%02d", (hour + 1) %% 24), ":00"))
+
+# Step 4: Filter delayed trains
+d.delayed_trains <- d.combined %>%
+  filter(delay.category != "on time")
+
+# Step 5: Count total trains per time window
+total_trains_per_timeframe <- d.combined %>%
+  group_by(timeframe) %>%
+  summarise(total_trains = n())
+
+# Step 6: Summarize delayed trains by time window
+overview_time_delay_table <- d.delayed_trains %>%
+  group_by(timeframe) %>%
+  summarise(
+    delay_count = n(),
+    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
+  ) %>%
+  
+  # Step 7: Join with the total trains per time window
+  left_join(total_trains_per_timeframe, by = "timeframe") %>%
+  
+  # Step 8: Calculate the percentage of delayed trains
+  mutate(
+    percentage_delayed_trains = (delay_count / total_trains) * 100
+  ) %>%
+  
+  # Step 9: Convert timeframe to a factor and sort
+  mutate(timeframe = factor(
+    timeframe,
+    levels = paste0(sprintf("%02d", 0:23), ":00 - ", sprintf("%02d", 1:24 %% 24), ":00")
+  )) %>%
+  arrange(timeframe)
+
+# Step 10: Create the line graph
+ggplot(overview_time_delay_table, aes(x = timeframe, y = percentage_delayed_trains, group = 1)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  labs(
+    title = "Percentage of Delayed Trains by Time Window",
+    x = "Time Window",
+    y = "Percentage of Delayed Trains (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
 
 ## Assessing the Impact of Weather on Train Delays
 - Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
