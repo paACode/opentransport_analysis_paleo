@@ -11,7 +11,9 @@ library(knitr)
 opts_chunk$set(echo = FALSE ,
                include = FALSE,
                comment = NA,
-               eval = TRUE)
+               eval = TRUE,
+               message = FALSE,
+               warning = FALSE)
 ```
 
 # Introduction
@@ -43,7 +45,9 @@ For this study, data was sourced from [opentransportdata.swiss](https://opentran
 -   Every day is provided as \*.csv-File
 -   Every row contains the arrival or departure of a public vehicle
 
-### Reduce dataset
+<h3 id = "reduceDataset"> Reduce dataset </h3>
+
+
 
 The whole dataset for the year 2024 is roughly \~150GB. Working with such a big data set in R is very time consuming and impractical. Therefore the dataset was reduce to a manageable size before working with R.
 
@@ -70,7 +74,13 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 
 ### Data Preparation
 
+<<<<<<< Updated upstream
 ```{r Import and Validate}
+=======
+The size reduction of the dataset described in Chapter <a href="#reduceDataset">Reduce Dataset</a> enabled the data to be imported into R. After importing the data in R, the preprocessing steps of the shell scripts could easily be validated with a simple unit test.
+
+```{r Import and Validate, echo = TRUE, include=TRUE}
+>>>>>>> Stashed changes
 #import libraries
 library(testthat)
 library(dplyr)
@@ -87,7 +97,17 @@ test_that("Shell Scripts to reduce dataset worked?", {
 })
 ```
 
+<<<<<<< Updated upstream
 ```{r Clean Up}
+=======
+
+Upon reviewing the dataset, we identified several issues that need to be addressed:
+
+- Trains departing late from Lucerne should be excluded, as only the arrival times are relevant to our analysis.
+- Arrival times that are predicted rather than measured should also be removed, as we are focusing exclusively on real data.
+
+```{r Clean Up, echo= TRUE, include=TRUE}
+>>>>>>> Stashed changes
 # Columns needed: 
 # More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
 # "BETRIEBSTAG" : categorizing weekday/month/season, merging weather 
@@ -175,6 +195,17 @@ d.train.compl$season <- case_when(
 ggplot(data =d.train.compl, aes(x = delay.category)) +
   geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
                  fill = "skyblue", color = "black") +  # Customize the appearance
+  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
+  #scale_x_sqrt()+
+  theme_minimal()  # Apply a minimal theme
+
+subset.highdelays <-  d.train.compl %>% 
+  filter(delay.calc.min > 5)
+
+# Create the histogram with percentages
+ggplot(data =subset.highdelays, aes(x = delay.calc.min)) +
+  geom_histogram(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
+                 bins = 20, fill = "skyblue", color = "black") +  # Customize the appearance
   labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
   #scale_x_sqrt()+
   theme_minimal()  # Apply a minimal theme
