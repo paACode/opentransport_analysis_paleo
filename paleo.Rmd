@@ -74,13 +74,9 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 
 ### Data Preparation
 
-<<<<<<< Updated upstream
-```{r Import and Validate}
-=======
 The size reduction of the dataset described in Chapter <a href="#reduceDataset">Reduce Dataset</a> enabled the data to be imported into R. After importing the data in R, the preprocessing steps of the shell scripts could easily be validated with a simple unit test.
 
 ```{r Import and Validate, echo = TRUE, include=TRUE}
->>>>>>> Stashed changes
 #import libraries
 library(testthat)
 library(dplyr)
@@ -97,9 +93,6 @@ test_that("Shell Scripts to reduce dataset worked?", {
 })
 ```
 
-<<<<<<< Updated upstream
-```{r Clean Up}
-=======
 
 Upon reviewing the dataset, we identified several issues that need to be addressed:
 
@@ -107,7 +100,6 @@ Upon reviewing the dataset, we identified several issues that need to be address
 - Arrival times that are predicted rather than measured should also be removed, as we are focusing exclusively on real data.
 
 ```{r Clean Up, echo= TRUE, include=TRUE}
->>>>>>> Stashed changes
 # Columns needed: 
 # More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
 # "BETRIEBSTAG" : categorizing weekday/month/season, merging weather 
