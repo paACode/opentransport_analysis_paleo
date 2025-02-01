@@ -77,7 +77,7 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 
 The size reduction of the dataset described in Chapter <a href="#reduceDataset">Reduce Dataset</a> enabled the data to be imported into R. After importing the data in R, the preprocessing steps of the shell scripts could easily be validated with a simple unit test.
 
-```{r Import and Validate, echo = TRUE, include=TRUE}
+```{r Import}
 #import libraries
 library(testthat)
 library(dplyr)
@@ -86,7 +86,8 @@ library(ggplot2)
 Sys.setenv(LANG = "en")
 #
 d.train.raw <-  read.csv(file = "raw_transport_2024.csv", sep = ";")
-
+```
+```{r Validate, include=TRUE, echo=TRUE}
 test_that("Shell Scripts to reduce dataset worked?", {
   expect_equal(unique(d.train.raw$BETREIBER_ABK), "SBB")
   expect_equal(unique(d.train.raw$HALTESTELLEN_NAME), "Luzern")
@@ -100,7 +101,7 @@ Upon reviewing the dataset, we identified several issues that need to be address
 - Trains departing late from Lucerne should be excluded, as only the arrival times are relevant to our analysis.
 - Arrival times that are predicted rather than measured should also be removed, as we are focusing exclusively on real data.
 
-```{r Clean Up, echo= TRUE, include=TRUE}
+```{r Clean Up}
 # Columns needed: 
 # More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
 # "BETRIEBSTAG" : categorizing weekday/month/season, merging weather 
@@ -113,6 +114,9 @@ col.needed <-  c("BETRIEBSTAG",
                  "ANKUNFTSZEIT",
                  "AN_PROGNOSE")
 
+```
+
+```{r Data removal, include= TRUE, echo = TRUE}
 #Filter 
 d.train.filtered <-  d.train.raw %>%
   filter(ANKUNFTSZEIT != "") %>% #Remove trains starting from lucerne
@@ -122,9 +126,10 @@ d.train.filtered <-  d.train.raw %>%
 
 ```
 
-As next step the dataset was complemented with additional data. For this the delay was calculated and additional categorical variables were created to simplify data analysis.
 
-```{r Complete Dataset }
+Next, the dataset has been edited by adding the delay, which needed to be calculated. Initially, the delay calculation failed as expected, mainly due to the time wrapping at 24:00, resulting in inaccurately high delay values. To address this, the time format was converted to POSIXct, and the difftime function was used to properly compute the delays.
+
+```{r Calculate Delay Function, include=TRUE, echo=TRUE}
 
 calc.delay.s <- function(exp.time,
                          exp.time.format,
@@ -147,7 +152,11 @@ calc.delay.s <- function(exp.time,
   return(delay.s)
   
 }
+```
 
+The final step involved adding additional categorical data to simplify the analysis. This included variables such as season, month, and weekday, which were converted into ordered factors.
+
+```{r Complement dataset}
 #Create dataset with complimentary information
 d.train.compl <-  d.train.filtered
 
@@ -196,6 +205,8 @@ month.order <- c(
 )
 month <- months(as.Date(d.train.compl$BETRIEBSTAG, format = "%d.%m.%Y"))
 d.train.compl$month <- factor(month, levels = month.order, ordered = TRUE)
+```
+```{r Example how season was added, include=TRUE, echo=TRUE}
 #Add season
 season.order <- c(
   "Spring",
@@ -212,8 +223,8 @@ season <- case_when(
 
 d.train.compl$season <- factor(season, levels = season.order, ordered = TRUE)
 
-
 ```
+
 
 ## Weather Data
 
