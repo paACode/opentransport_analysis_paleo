@@ -578,21 +578,19 @@ Question: At which weekday are more extreme delays? -> Boxplot with the outliers
 Question: At which time e.g. on thursdays is the delay the most?
 
 
-Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior**. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.  
+Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior** at Lucern Station. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.  
 
 The **line chart of the percentage of delayed trains** was chosen as it effectively highlights the **frequency of delayed trains** across different time windows, allowing us to identify key periods where delays are most common. However, this visualization does not capture the **severity of the delays**, which also requires further analysis to understand their impact on punctuality and overall operations.
 
-The plot illustrates the percentage of delayed trains across different time windows throughout the day, revealing distinct patterns linked to train traffic and operational challenges. For workers starting their **06:00 shift**, the key arrival window is between **05:00 and 05:30**. The plot shows **moderately high delay percentages of around 60% during this time window**, which, although lower than the peak at **06:00-08:00**, still poses a **moderate risk to worker punctuality**. Any delays during this period could lead to last-minute arrivals or missed shifts, suggesting that targeted measures to reduce early morning delays may improve reliability.
+The plot illustrates the percentage of delayed trains across different time windows throughout the day, revealing distinct patterns linked to train traffic and operational challenges. For workers starting their **06:00 shift**, the key arrival window is between **05:00 and 05:30**. The plot shows **delay percentages of around 45% during this time window**, which, although lower than peak periods, still poses a **moderate risk to worker punctuality**. Any disruptions during this period could result in last-minute arrivals, especially if trains experience longer delays.  
 
-The next critical window is for workers starting the **14:00 shift**, who need to arrive between **13:00 and 13:30**. The plot shows **relatively low delay percentages (around 40% to 50%) during this time frame**, indicating **smoother operations** and a **reduced risk of transport-related disruptions** compared to the morning.  
+The next critical window is for workers starting the **14:00 shift**, who need to arrive between **13:00 and 13:30**. The plot shows **delay percentages of around 52%** during this period, indicating a **slightly higher risk** of delays compared to the morning shift window. While delays are less frequent than during the morning or evening peaks, they are still significant enough to warrant monitoring, particularly when compounded by other operational factors.  
 
-For the **22:00 shift**, workers must arrive between **21:00 and 21:30**. During this window, the plot indicates **delay rates of around 50%**, which are not as severe as during the morning or evening rush hours, but still pose a **potential punctuality risk** due to the cumulative nature of delays from the evening period (17:00 to 20:00).  
+For the **22:00 shift**, workers must arrive between **21:00 and 21:30**. The plot indicates **delay rates of around 65%** during this time window, reflecting a **high-risk period** that could pose challenges for timely shift transitions. The cumulative delays from the evening rush (17:00 to 20:00) may contribute to the elevated risk, suggesting a need for **closer monitoring and possible contingency measures** during this period.  
 
-These observations highlight the need for **targeted interventions during the early morning (05:00 to 05:30)**, where delays may pose the highest risk to on-time arrivals. Additionally, the **moderate but manageable delays in the evening (21:00 to 21:30)** suggest that ensuring smooth evening operations could prevent issues for the night shift. The **off-peak period before the 14:00 shift** appears less problematic, providing an opportunity to allocate maintenance or optimize train schedules. By focusing on these key time windows, precise countermeasures can be developed to **minimize transport-related disruptions and improve production reliability** for MadeUpCompany AG.
+These observations highlight the need for **targeted interventions during the early morning (05:00 to 05:30) and evening (21:00 to 21:30) time windows**, where delays pose the greatest threat to on-time arrivals. Additionally, the **midday window before the 14:00 shift** requires attention due to its moderate delay rates, though it presents opportunities for **schedule optimization and maintenance planning**. By focusing on these key time windows, precise countermeasures can be developed to **minimize transport-related disruptions and improve production reliability** for MadeUpCompany AG.
 
-
-
-```{r Delay per Time Window Line Chart, echo=FALSE, message = FALSE, include=TRUE}
+```{r Delay per Time Window Line Chart, echo=FALSE, message=FALSE, include=TRUE}
 library(dplyr)
 library(lubridate)
 library(ggplot2)
@@ -658,8 +656,7 @@ ggplot(overview_time_delay_table, aes(x = timeframe, y = percentage_delayed_trai
 
 ```
 
-
-```{r Analizing Delays on hourly timeframe basis, echo=FALSE, message = FALSE, include=FALSE}
+```{r Delay per Time Window Table, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
 library(lubridate)
 library(gt)
@@ -757,6 +754,14 @@ overview_time_delay_table %>%
 
 ```
 
+As priviously already mentioned is the length of delay not yet taken into account. Therefore it is helpful to investigate in so called outliers or extreme delays. As a first impression we analyzed the dataset by a boxplot.
+
+
+```{r Delay per Weekday BoxPlot, echo=FALSE, message = FALSE, include=TRUE}
+ggplot(d.combined, aes(x = weekday, y = delay.calc.min, fill = weekday)) +
+    geom_boxplot() +
+    scale_y_sqrt()
+```
 
 
 ## Assessing the Impact of Weather on Train Delays
