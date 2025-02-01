@@ -762,6 +762,14 @@ ggplot(d.combined, aes(x = weekday, y = delay.calc.min, fill = weekday)) +
     geom_boxplot() +
     scale_y_sqrt()
 ```
+<br>
+The boxplot provides an overview of the **distribution of delays across weekdays**, including **outliers or extreme delays**. The **box** represents the interquartile range (IQR), showing the middle 50% of delay durations, while the **line within the box** indicates the median delay. The **whiskers** extend to the minimum and maximum values within 1.5 times the IQR, and points beyond the whiskers are considered **outliers**. 
+
+From the plot, we observe that the **median delay across all weekdays is relatively low**, indicating that most delays are short and within a manageable range. However, there are **numerous outliers across all days**, particularly on **Thursday and Friday**, where extreme delays frequently exceed **60 to 90 minutes**. This suggests that while delays are generally short, the **presence of occasional long delays could significantly impact punctuality** and cause production disruptions. 
+
+Additionally, **Saturday and Sunday** show **slightly lower median delays and fewer extreme outliers** compared to weekdays, reinforcing the observation that weekends tend to experience **smoother operations** with less severe disruptions. The overall spread of the delays during the week, combined with the concentration of outliers, highlights the **importance of further investigating the causes of extreme delays** and identifying **targeted interventions to mitigate their impact**.
+
+In summary, while most train delays are relatively short, the significant number of extreme delays on certain weekdays, particularly **Thursday and Friday**, indicates the need for **outlier-specific analyses** and corrective measures to address these events effectively.
 
 
 ## Assessing the Impact of Weather on Train Delays
