@@ -8,6 +8,7 @@ output: html_document
 ```{r, echo=FALSE , include=FALSE}
 ## we remove the printing of the hashes in front of all results
 library(knitr)
+library(details)
 opts_chunk$set(echo = FALSE ,
                include = FALSE,
                comment = NA,
@@ -121,7 +122,10 @@ d.train.filtered <-  d.train.raw %>%
 
 ```
 
-```{r Complete Dataset}
+As next step the dataset was complemented with additional data. For this the delay was calculated and additional categorical variables were created to simplify data analysis.
+
+
+```{r Complete Dataset }
 
 calc.delay.s <- function(exp.time,
                          exp.time.format,
