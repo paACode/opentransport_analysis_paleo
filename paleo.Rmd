@@ -354,33 +354,24 @@ This analysis chapter examines the temporal and categorical patterns of train de
 ## Overview of Data
 
 As a first step, a plot was created that provides an overview of SBB's overall performance. It shows that over 35% of trains arrive on time, while slightly more than 60% arrive within a delay of 0 to 5 minutes.
-Longer delays account for only 5% of the total. This first view 
+Longer delays account for only 5% of the total. 
 
 ```{r distribution of delays, include=TRUE}
 
-ggplot(data =d.train.compl, aes(x = delay.category)) +
+ggplot(data = d.train.compl, aes(x = delay.category)) +
   geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
-                 fill = "skyblue", color = "black") +  # Customize the appearance
+           fill = "skyblue", color = "black") +  # Customize the appearance
   labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
-  ggtitle("Overview-Distribution of all arriving trains", subtitle = "lucerne train station, 2024") +
-  theme_minimal()  # Apply a minimal theme
+  ggtitle("Overview-Distribution of all arriving trains", subtitle = "Lucerne train station, 2024") +
+  theme_minimal() +  # Apply a minimal theme
+  geom_text(aes(y = ..count.. / sum(..count..) * 100, label = ..count..), stat = "count", vjust = -0.5, colour = "blue")  # Add count labels above bars
+
 ```
 
-One might conclude that delays longer than 5 minutes are rare and, therefore, have little impact on production. However, when considering the actual number of delayed trains per year, it becomes clear that the disruption to production could still be significant, as there are over 2,000 trains arriving with extreme delays.
+One might initially conclude that delays longer than 5 minutes are rare and, therefore, have a minimal impact on production. However, when examining the actual number of delayed trains per year, it becomes evident that the disruption to production could still be substantial. In fact, there are `r 1908+375+60` trains experiencing delays greater than 5 minutes.
 
-```{r Count of extreme delays, include=TRUE}
-subset.extremeDelays <- d.train.compl  %>% 
-  filter(delay.calc.min > 5)
 
-ggplot(data = subset.extremeDelays, aes(x = delay.category)) +
-  geom_bar(aes(y = ..count..), fill = "skyblue", color = "black") +  # Bar chart
-  geom_text(stat = "count", aes(label = ..count..), vjust = -0.25, size = 4, fontface= "bold") +  # Add count labels above bars
-  labs(y = "Count", x = "Delay [mins]") +  
-  ggtitle("Overview-Distribution of Extreme Delays", subtitle = "Lucerne Train Station, 2024") +
-  theme_minimal()
-```
-
-Another thing to mention in the Overview Plot is that SBB’s performance might seem poor, with over 60% of trains arriving late. However, a closer look at the 5-minute delay category reveals that more than 50% of these trains are delayed by less than a minute, which puts the initial impression into perspective.
+Another thing to mention is that SBB’s performance might seem poor, with over 60% of trains arriving late. However, a closer look at the 5-minute delay category reveals that more than 50% of these trains are delayed by less than a minute, which puts the initial impression into perspective.
 
 ```{r closer look 5min, include=TRUE}
 
@@ -392,7 +383,7 @@ ggplot(data =subset.smaller5min, aes(x = delay.calc.min)) +
                  binwidth = 1, fill = "skyblue", color = "black", boundary = 0) +  # Customize the appearance
   scale_x_continuous(breaks = 1:5) +
   labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
-  ggtitle("Closer Look at < 5min category", subtitle = "lucerne train station, 2024") +
+  ggtitle("Closer Look at < 5min ", subtitle = "lucerne train station, 2024") +
   theme_minimal()  # Apply a minimal theme
 ```
 
