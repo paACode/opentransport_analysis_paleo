@@ -402,9 +402,9 @@ The "Scatter Plot with Jitter and Regression Line" serves as a representative ex
 
 ## A Monthly and Weekday Perspective
 
-While weekday patterns highlight operational challenges tied to daily traffic, the broader picture of train delays requires an exploration of monthly trends to capture potential seasonal effects. The "Monthly Overview of Train Delays" reveals further insights into how these factors evolve over time.
+Following the seasonal analysis, it is crucial to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The “Monthly Overview of Train Delays” was specifically chosen to illustrate how delays fluctuate over time, helping to highlight critical monthly trends and complement the broader seasonal analysis.
 
-The average delay time remains relatively stable between 80 and 110 seconds for most months, but a significant spike in December suggests potential disruptions, possibly due to adverse weather conditions or holiday-related scheduling issues. Interestingly, despite this increase in delay duration, the number of delayed trains in December shows a noticeable decline, indicating fewer train operations during this period. Throughout the rest of the year, the number of delayed trains remains consistently high, with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains remains persistently high at around 60% throughout the year, suggesting that delays are a systemic issue and not solely driven by seasonal factors. This consistent delay rate points to possible underlying operational or structural challenges that require further investigation.
+The average delay time remains relatively stable between **80 and 110 seconds** for most months, but a **significant spike in November** suggests potential disruptions, possibly due to **adverse weather conditions**, **increased travel demand**, or **network inefficiencies** during this period. Despite this increase in delay duration, November does not show a corresponding peak in the number of delayed trains, which remains **consistently high across the year** with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains stays **persistently high at around 60%**, suggesting that delays are driven not only by seasonal changes but also by **underlying systemic issues** such as **scheduling inefficiencies** or **network congestion**.
 
 ```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
@@ -484,7 +484,7 @@ ggplot(long_delay_table, aes(x = month, y = Value, fill = Metric)) +
 
 ```
 
-```{r Average Delay Duration by Month, , echo=FALSE, message = FALSE, include=TRUE}
+```{r Average Delay Duration by Month Linegraph, , echo=FALSE, message = FALSE, include=FALSE}
 ggplot(overview_month_delay_table, aes(x = month, y = avg_delay_seconds, group = 1)) +
   geom_line(color = "steelblue", size = 1) +
   geom_point(size = 2, color = "darkred") +
@@ -496,8 +496,12 @@ ggplot(overview_month_delay_table, aes(x = month, y = avg_delay_seconds, group =
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+##-> Update Y-Axis and start from 50s ! -> better comparability in chart
 ```
--> Update Y-Axis and start from 50s ! -> better comparability in chart
+
+Although high delays are observed in November, the **absolute average delay of around 2 minutes** is not particularly high or likely to cause major disruptions for worker arrivals at the production line. The **low delay count observed in December** suggests possible **data quality issues** or missing data, potentially due to removal during the data cleaning process. To refine the understanding of delays, further investigation is necessary, including an analysis of delay patterns on the **weekday level** and closer examination of **outliers** to identify specific cases that may disproportionately affect production reliability.
+
+
 
 The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into scheduling or operational adjustments to reduce delays.
 
