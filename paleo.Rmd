@@ -771,6 +771,77 @@ Additionally, **Saturday and Sunday** show **slightly lower median delays and fe
 
 In summary, while most train delays are relatively short, the significant number of extreme delays on certain weekdays, particularly **Thursday and Friday**, indicates the need for **outlier-specific analyses** and corrective measures to address these events effectively.
 
+To further understand the nature of delays and their impact, it is important to investigate how delays vary in severity throughout the day. While previous analyses have focused on general patterns and extreme outliers, examining specific delay categories (5-15 min, 15-30 min, and >30 min) can help identify critical time windows where even moderate or short delays may accumulate and disrupt operations. The following line graph provides insights into the total count of delays per category, highlighting periods of both high and low delay frequencies.
+
+```{r Count of Delayed Trains by Delay Category and Time Window Line Graph, echo=FALSE, message = FALSE, include=TRUE}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# Step 1: Convert ANKUNFTSZEIT to proper datetime format
+d.combined <- d.combined %>%
+  mutate(datetime_ankunft = dmy_hm(ANKUNFTSZEIT))
+
+# Step 2: Extract the hour and create time windows
+d.combined <- d.combined %>%
+  mutate(
+    hour = hour(datetime_ankunft),
+    timeframe = paste0(sprintf("%02d", hour), ":00 - ", sprintf("%02d", (hour + 1) %% 24), ":00")
+  )
+
+# Step 3: Filter delayed trains
+d.delayed_trains_extreme <- d.combined %>%
+  filter(delay.category %in% c("5-15 min", "15-30 min", ">30 min"))
+
+# Step 4: Summarize counts of delays by time window and delay category
+overview_time_delay_table <- d.delayed_trains_extreme %>%
+  group_by(timeframe, delay.category) %>%
+  summarise(delay_count = n(), .groups = "drop") %>%
+  mutate(timeframe = factor(
+    timeframe,
+    levels = paste0(sprintf("%02d", 0:23), ":00 - ", sprintf("%02d", 1:24 %% 24), ":00")
+  )) %>%
+  arrange(timeframe)
+
+# Define the time ranges that we DO NOT want to highlight
+non_highlight_times <- data.frame(
+  xmin = c("00:00 - 01:00", "05:00 - 06:00", "15:00 - 16:00", "22:00 - 23:00"),
+  xmax = c("02:00 - 03:00", "11:00 - 12:00", "20:00 - 21:00", "23:00 - 00:00"),
+  ymin = -Inf,
+  ymax = Inf
+)
+
+# Step 5: Create the line graph with inverted background highlighting
+ggplot(overview_time_delay_table, aes(x = timeframe, y = delay_count, color = delay.category, group = delay.category)) +
+  # Inverted shaded areas
+  geom_rect(data = non_highlight_times, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill = "gray80", alpha = 0.4, inherit.aes = FALSE) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Count of Delayed Trains by Delay Category and Time Window",
+    x = "Time Window",
+    y = "Count of Delayed Trains",
+    color = "Delay Category"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+The line graph reveals clear differences in the distribution and frequency of train delays across different time windows and delay categories. The **5-15 minute delay category** (red line) dominates the overall delay pattern, with its peaks occurring during the **morning rush hours (06:00-08:00)** and **evening rush hours (17:00-19:00)**. This suggests that the majority of delays are **relatively short but concentrated** during periods of high traffic and train frequency.
+
+The **15-30 minute delay category** (green line) remains **fairly stable throughout the day**, showing **minor fluctuations** with slightly elevated counts during the **morning and evening rush hours**. Although less frequent than short delays, this category presents a **moderate risk to punctuality**, particularly during **high-traffic periods** when even minor delays can **compound operational issues**.
+
+The **>30 minute delay category** (blue line) is the **least frequent**, with consistently low counts across all time windows. However, even though these **extreme delays are rare**, their **potential impact on worker punctuality and production reliability** could be significant, especially if they occur during **critical time windows**.
+
+The **white-highlighted areas** represent **time windows with generally low delay counts**, particularly between **02:00-06:00**, **11:00-16:00** and **20:00-23:00**, when traffic is lighter. The identified time windows could present optimal commuting frames when workers delay due to public transport could be minimized.
+
+Comments:
+- Analyze Every month separate with boxplot to investigate if Tue and Fri have throughout the year higher delays
+- Analyze November in detail since there have been the longest delays. Has it something to do with the Weather?
+
 
 ## Assessing the Impact of Weather on Train Delays
 - Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
