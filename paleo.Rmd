@@ -215,39 +215,6 @@ d.train.compl$season <- factor(season, levels = season.order, ordered = TRUE)
 
 ```
 
-```{r First Plot}
-
-# Create the histogram with percentages
-ggplot(data =d.train.compl, aes(x = delay.category)) +
-  geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
-                 fill = "skyblue", color = "black") +  # Customize the appearance
-  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
-  #scale_x_sqrt()+
-  theme_minimal()  # Apply a minimal theme
-
-subset.highdelays <-  d.train.compl %>% 
-  filter(delay.calc.min > 5)
-
-# Create the histogram with percentages
-ggplot(data =subset.highdelays, aes(x = delay.calc.min)) +
-  geom_histogram(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
-                 bins = 20, fill = "skyblue", color = "black") +  # Customize the appearance
-  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
-  #scale_x_sqrt()+
-  theme_minimal()  # Apply a minimal theme
-
-# Create the histogram with percentages
-ggplot(data =d.train.compl, aes(x = season)) +
-  geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
-                 fill = "skyblue", color = "black") +  # Customize the appearance
-  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
-  #scale_x_sqrt()+
-  theme_minimal()  # Apply a minimal theme
-
-```
-
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
-
 ## Weather Data
 
 ```{r echo=TRUE}
@@ -385,6 +352,50 @@ d.combined <- d.train.compl %>%
 This analysis chapter examines the temporal and categorical patterns of train delays affecting MadeUpCompany AG employees arriving in Lucerne. By analyzing public transport data from 2024 onward, combined with Swiss weather data, the study investigates delay frequency, duration, and their distribution across weekdays and months. Key metrics, including total and delayed train counts, delay severity, and weather influence, are evaluated to identify trends that could inform effective countermeasures. Through statistical summaries and visualizations, the analysis aims to provide precise, data-driven recommendations to enhance production reliability by mitigating transport-related disruptions.
 
 ## Overview of Data
+
+As a first step, a plot was created that provides an overview of SBB's overall performance. It shows that over 35% of trains arrive on time, while slightly more than 60% arrive within a delay of 0 to 5 minutes.
+Longer delays account for only 5% of the total. This first view 
+
+```{r distribution of delays, include=TRUE}
+
+ggplot(data =d.train.compl, aes(x = delay.category)) +
+  geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
+                 fill = "skyblue", color = "black") +  # Customize the appearance
+  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
+  ggtitle("Overview-Distribution of all arriving trains", subtitle = "lucerne train station, 2024") +
+  theme_minimal()  # Apply a minimal theme
+```
+
+One might conclude that delays longer than 5 minutes are rare and, therefore, have little impact on production. However, when considering the actual number of delayed trains per year, it becomes clear that the disruption to production could still be significant, as there are over 2,000 trains arriving with extreme delays.
+
+```{r Count of extreme delays, include=TRUE}
+subset.extremeDelays <- d.train.compl  %>% 
+  filter(delay.calc.min > 5)
+
+ggplot(data = subset.extremeDelays, aes(x = delay.category)) +
+  geom_bar(aes(y = ..count..), fill = "skyblue", color = "black") +  # Bar chart
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.25, size = 4, fontface= "bold") +  # Add count labels above bars
+  labs(y = "Count", x = "Delay [mins]") +  
+  ggtitle("Overview-Distribution of Extreme Delays", subtitle = "Lucerne Train Station, 2024") +
+  theme_minimal()
+```
+
+Another thing to mention in the Overview Plot is that SBB’s performance might seem poor, with over 60% of trains arriving late. However, a closer look at the 5-minute delay category reveals that more than 50% of these trains are delayed by less than a minute, which puts the initial impression into perspective.
+
+```{r closer look 5min, include=TRUE}
+
+subset.smaller5min <- d.train.compl  %>% 
+  filter(delay.category == "<5 min")
+
+ggplot(data =subset.smaller5min, aes(x = delay.calc.min)) +
+  geom_histogram(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
+                 binwidth = 1, fill = "skyblue", color = "black", boundary = 0) +  # Customize the appearance
+  scale_x_continuous(breaks = 1:5) +
+  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
+  ggtitle("Closer Look at < 5min category", subtitle = "lucerne train station, 2024") +
+  theme_minimal()  # Apply a minimal theme
+```
+
 
 As a first step to get an better understanding of the data set we plotted delays and air temperature. From this first impression plot, we observed that there does not seem to be a clear, strong linear relationship between air temperature ("Lufttemperatur") and the delay. The points are widely scattered and the regression line appears mostly flat. Further, there is a dense clustering of points around zero on the y-axis, indicating that a large number of observations have minimal or no delays, regardless of the air temperature. There are several noticeable outliers where delays exceed 50 minutes, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees there seems to be a higher delay suggesting further analysis also regarding percipitation. Although the use of jittering is helping to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
 
