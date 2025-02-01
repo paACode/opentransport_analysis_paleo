@@ -365,15 +365,17 @@ ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
 
 The "Scatter Plot with Jitter and Regression Line" serves as a representative example of the weak relationship observed between weather variables and train delays overall. This suggests that while weather may not be a primary driver of delays, further analysis of potential correlations between delayed trains and specific weather conditions could still reveal hidden patterns. However, before delving into these correlations, it is essential to first conduct a detailed analysis of delay patterns at the weekday and seasonal levels, as seen in the current summary table.
 
-## A Weekday and Monthly Perspective
+## A Monthly and Weekday Perspective
 
-The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into scheduling or operational adjustments to reduce delays.
+While weekday patterns highlight operational challenges tied to daily traffic, the broader picture of train delays requires an exploration of monthly trends to capture potential seasonal effects. The "Monthly Overview of Train Delays" reveals further insights into how these factors evolve over time.
 
-```{r Overview Weekdays Table, echo=FALSE, message = FALSE, include=TRUE}
+The average delay time remains relatively stable between 80 and 110 seconds for most months, but a significant spike in December suggests potential disruptions, possibly due to adverse weather conditions or holiday-related scheduling issues. Interestingly, despite this increase in delay duration, the number of delayed trains in December shows a noticeable decline, indicating fewer train operations during this period. Throughout the rest of the year, the number of delayed trains remains consistently high, with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains remains persistently high at around 60% throughout the year, suggesting that delays are a systemic issue and not solely driven by seasonal factors. This consistent delay rate points to possible underlying operational or structural challenges that require further investigation.
+
+```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
 library(gt)
 
-## Step 1: Prepare the table (same as before)
+## Step 0: Prepare the table (same as before)
 ## create subset with only delayed trains
 d.delayed_trains <- d.combined %>% 
   filter(delay.category != "on time")
@@ -382,55 +384,6 @@ d.delayed_trains <- d.combined %>%
 total_trains_per_day <- d.combined %>%
   group_by(weekday) %>%
   summarise(total_trains = n())
-
-## create default table with train count, delay avg 
-## and delayed train count by weekday
-overview_delay_table <- d.delayed_trains %>%
-  group_by(weekday) %>%
-  summarise(delay_count = n(),
-            avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)) %>%
-  left_join(total_trains_per_day, by = "weekday") %>%
-  mutate(
-    percentage_delayed_trains = (delay_count / total_trains) * 100,
-    weekday = factor(
-      weekday,
-      levels = c(
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"
-      )
-    )
-  ) %>%
-  arrange(weekday)
-
-# Step 2: Create a beautiful table using `gt`
-overview_delay_table %>%
-  gt() %>%
-  tab_header(title = "Summary of Train Delays by Weekday", subtitle = "Total trains, delayed trains, and percentage delays") %>%
-  fmt_number(
-    columns = c(avg_delay_seconds, percentage_delayed_trains),
-    decimals = 2
-  ) %>%
-  cols_label(
-    weekday = "weekday",
-    delay_count = "Delayed Trains",
-    avg_delay_seconds = "Average Delay (s)",
-    total_trains = "Total Trains",
-    percentage_delayed_trains = "Delayed (%)"
-  )
-
-```
-While weekday patterns highlight operational challenges tied to daily traffic, the broader picture of train delays requires an exploration of monthly trends to capture potential seasonal effects. The "Monthly Overview of Train Delays" reveals further insights into how these factors evolve over time.
-
-The average delay time remains relatively stable between 80 and 110 seconds for most months, but a significant spike in December suggests potential disruptions, possibly due to adverse weather conditions or holiday-related scheduling issues. Interestingly, despite this increase in delay duration, the number of delayed trains in December shows a noticeable decline, indicating fewer train operations during this period. Throughout the rest of the year, the number of delayed trains remains consistently high, with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains remains persistently high at around 60% throughout the year, suggesting that delays are a systemic issue and not solely driven by seasonal factors. This consistent delay rate points to possible underlying operational or structural challenges that require further investigation.
-
-```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
-library(dplyr)
-library(gt)
 
 ## Step 1: Prepare the table for months (similar to the weekday table)
 ## count total trains per month
@@ -510,6 +463,65 @@ ggplot(overview_month_delay_table, aes(x = month, y = avg_delay_seconds, group =
 
 ```
 -> Update Y-Axis and start from 50s ! -> better comparability in chart
+
+The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into scheduling or operational adjustments to reduce delays.
+
+```{r Overview Weekdays Table, echo=FALSE, message = FALSE, include=TRUE}
+library(dplyr)
+library(gt)
+
+## Step 1: Prepare the table (same as before)
+## create subset with only delayed trains
+d.delayed_trains <- d.combined %>% 
+  filter(delay.category != "on time")
+
+## count total trains per weekday
+total_trains_per_day <- d.combined %>%
+  group_by(weekday) %>%
+  summarise(total_trains = n())
+
+## create default table with train count, delay avg 
+## and delayed train count by weekday
+overview_delay_table <- d.delayed_trains %>%
+  group_by(weekday) %>%
+  summarise(delay_count = n(),
+            avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)) %>%
+  left_join(total_trains_per_day, by = "weekday") %>%
+  mutate(
+    percentage_delayed_trains = (delay_count / total_trains) * 100,
+    weekday = factor(
+      weekday,
+      levels = c(
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      )
+    )
+  ) %>%
+  arrange(weekday)
+
+# Step 2: Create a beautiful table using `gt`
+overview_delay_table %>%
+  gt() %>%
+  tab_header(title = "Summary of Train Delays by Weekday", subtitle = "Total trains, delayed trains, and percentage delays") %>%
+  fmt_number(
+    columns = c(avg_delay_seconds, percentage_delayed_trains),
+    decimals = 2
+  ) %>%
+  cols_label(
+    weekday = "weekday",
+    delay_count = "Delayed Trains",
+    avg_delay_seconds = "Average Delay (s)",
+    total_trains = "Total Trains",
+    percentage_delayed_trains = "Delayed (%)"
+  )
+
+```
+
 Question: At which weekday are more extreme delays? -> Boxplot with the outliers could show 
 
 Question: At which time e.g. on thursdays is the delay the most?
@@ -611,7 +623,7 @@ overview_time_delay_table %>%
 
 
 ```
-```{r Delay per Time Window Line Chart, }
+```{r Delay per Time Window Line Chart, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
 library(lubridate)
 library(ggplot2)
