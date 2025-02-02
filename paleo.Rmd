@@ -435,7 +435,7 @@ season.tbl <- d.delayed_trains %>%
 kable(season.tbl, caption = "Summary of Train Delays by Season")
 ```
 
-Upon closer examination with a jittered boxplot, we observe that the Fall season exhibits a higher frequency of outliers compared to other seasons. Surprisingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. One possible explanation is that in Fall, temperatures drop for the first time, potentially revealing failures in switch heating systems, which could lead to freezing-related disruptions. However, delays appear to be lower in Winter This could be attributed to the holiday season in Switzerland, particularly around Christmas, when public transport may experience reduced passenger traffic.
+Upon closer examination with a jittered boxplot, we observe that the Fall season exhibits a higher frequency of outliers compared to other seasons. Surprisingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. One possible explanation is that in Fall, temperatures drop for the first time, potentially revealing failures in switch heating systems, which could lead to freezing-related disruptions. However, delays appear to be lower in Winter.
 
 Further weather analysis in subsequent chapters will explore this aspect in more detail, offering a clearer understanding of how weather impacts delays.
 
@@ -880,7 +880,35 @@ Comments:
 - Analyze Every month separate with boxplot to investigate if Tue and Fri have throughout the year higher delays
 - Analyze November in detail since there have been the longest delays. Has it something to do with the Weather?
 
-## Use of Generative AI
+
+## Assessing the Impact of Weather on Train Delays
+- Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
+
+## Vacation Peaks in Switzerland
+
+Vacation peaks are to be expected in :
+- Easter Break (April)
+- Summer Holidays (July, August)
+- Autumn Holidays (October)
+- Christmas (Late December and January)
+
+```{r Vacation Peaks, echo=FALSE , include=FALSE}
+# d.vacation<- d.delayed_trains %>% 
+#   filter(month %in% c("January", "April", "July","August", "October", "December")
+#   )
+
+only_january <- d.combined %>% 
+  filter(month == "January")
+
+plot(only_january$delay.calc.min~only_january$BETRIEBSTAG)
+
+plot(only_january$delay.calc.min~only_january$datetime_ankunft)
+
+```
+
+
+
+# Use of Generative AI
 
 ChatGPT can be a valuable tool for various aspects of programming, particularly for detecting syntax errors and generating initial plots quickly. It provides immediate feedback, making it easier for users to identify issues and visually present their data. This speed and convenience can help jump-start the coding process, especially for beginners or when exploring new concepts.
 
