@@ -900,8 +900,6 @@ Vacation peaks are to be expected in :
 only_january <- d.combined %>% 
   filter(month == "January")
 
-plot(only_january$delay.calc.min~only_january$BETRIEBSTAG)
-
 plot(only_january$delay.calc.min~only_january$datetime_ankunft)
 
 ```
