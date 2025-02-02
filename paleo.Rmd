@@ -46,9 +46,11 @@ For this study, data was sourced from [opentransportdata.swiss](https://opentran
 -   Every day is provided as \*.csv-File
 -   Every row contains the arrival or departure of a public vehicle
 
-<h3 id = "reduceDataset"> Reduce dataset </h3>
+<h3 id="reduceDataset">
 
+Reduce dataset
 
+</h3>
 
 The whole dataset for the year 2024 is roughly \~150GB. Working with such a big data set in R is very time consuming and impractical. Therefore the dataset was reduce to a manageable size before working with R.
 
@@ -87,6 +89,7 @@ Sys.setenv(LANG = "en")
 #
 d.train.raw <-  read.csv(file = "raw_transport_2024.csv", sep = ";")
 ```
+
 ```{r Validate, include=TRUE, echo=TRUE}
 test_that("Shell Scripts to reduce dataset worked?", {
   expect_equal(unique(d.train.raw$BETREIBER_ABK), "SBB")
@@ -95,11 +98,10 @@ test_that("Shell Scripts to reduce dataset worked?", {
 })
 ```
 
-
 Upon reviewing the dataset, we identified several issues that need to be addressed:
 
-- Trains departing late from Lucerne should be excluded, as only the arrival times are relevant to our analysis.
-- Arrival times that are predicted rather than measured should also be removed, as we are focusing exclusively on real data.
+-   Trains departing late from Lucerne should be excluded, as only the arrival times are relevant to our analysis.
+-   Arrival times that are predicted rather than measured should also be removed, as we are focusing exclusively on real data.
 
 ```{r Clean Up}
 # Columns needed: 
@@ -125,7 +127,6 @@ d.train.filtered <-  d.train.raw %>%
   select(all_of(col.needed)) 
 
 ```
-
 
 Next, the dataset has been edited by adding the delay, which needed to be calculated. Initially, the delay calculation failed as expected, mainly due to the time wrapping at 24:00, resulting in inaccurately high delay values. To address this, the time format was converted to POSIXct, and the difftime function was used to properly compute the delays.
 
@@ -206,6 +207,7 @@ month.order <- c(
 month <- months(as.Date(d.train.compl$BETRIEBSTAG, format = "%d.%m.%Y"))
 d.train.compl$month <- factor(month, levels = month.order, ordered = TRUE)
 ```
+
 ```{r Example how season was added, include=TRUE, echo=TRUE}
 #Add season
 season.order <- c(
@@ -224,7 +226,6 @@ season <- case_when(
 d.train.compl$season <- factor(season, levels = season.order, ordered = TRUE)
 
 ```
-
 
 ## Weather Data
 
@@ -364,8 +365,7 @@ This analysis chapter examines the temporal and categorical patterns of train de
 
 ## Overview of Data
 
-As a first step, a plot was created that provides an overview of SBB's overall performance. It shows that over 35% of trains arrive on time, while slightly more than 60% arrive within a delay of 0 to 5 minutes.
-Longer delays account for only 5% of the total. 
+As a first step, a plot was created that provides an overview of SBB's overall performance. It shows that over 35% of trains arrive on time, while slightly more than 60% arrive within a delay of 0 to 5 minutes. Longer delays account for only 5% of the total.
 
 ```{r distribution of delays, include=TRUE}
 
@@ -380,7 +380,6 @@ ggplot(data = d.train.compl, aes(x = delay.category)) +
 ```
 
 One might initially conclude that delays longer than 5 minutes are rare and, therefore, have a minimal impact on production. However, when examining the actual number of delayed trains per year, it becomes evident that the disruption to production could still be substantial. In fact, there are `r 1908+375+60` trains experiencing delays greater than 5 minutes.
-
 
 Another thing to mention is that SBB’s performance might seem poor, with over 60% of trains arriving late. However, a closer look at the 5-minute delay category reveals that more than 50% of these trains are delayed by less than a minute, which puts the initial impression into perspective.
 
@@ -398,7 +397,6 @@ ggplot(data =subset.smaller5min, aes(x = delay.calc.min)) +
   theme_minimal()  # Apply a minimal theme
 ```
 
-
 As a first step to get an better understanding of the data set we plotted delays and air temperature. From this first impression plot, we observed that there does not seem to be a clear, strong linear relationship between air temperature ("Lufttemperatur") and the delay. The points are widely scattered and the regression line appears mostly flat. Further, there is a dense clustering of points around zero on the y-axis, indicating that a large number of observations have minimal or no delays, regardless of the air temperature. There are several noticeable outliers where delays exceed 50 minutes, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees there seems to be a higher delay suggesting further analysis also regarding percipitation. Although the use of jittering is helping to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
 
 ```{r Delay in relation to air temperature, include=TRUE, message=FALSE}
@@ -415,7 +413,12 @@ The "Scatter Plot with Jitter and Regression Line" serves as a representative ex
 
 ## A Seasonal, Monthly and Weekday Perspective
 
+
 To begin the analysis, it’s useful to explore the seasonal patterns of train delays. Overall, the delays show a consistent trend across all four seasons, with average delay times remaining stable throughout the year. However, when examining the maximum values, it becomes evident that Fall stands out with a notably higher maximum delay. This may be due to a single outlier, and further investigation is necessary before making any conclusions.
+
+### Seasonal Delay Analysis
+
+As an initial step, it makes sense to examine the seasonal patterns of train delays. Overall, the delays appear to be quite consistent across all four seasons. The summary statistics presented below reveal that, on average, delays remain steady throughout the year, with no significant fluctuations from one season to the next.
 
 ```{r Seaonsal analysis statistics, include=TRUE}
 d.delayed_trains <- d.combined %>% 
@@ -448,14 +451,17 @@ ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
 
 ```
 
+### Monthly Delay Analysis
+
 Building on the seasonal analysis, it is essential to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The "Monthly Overview of Train Delays" was chosen to illustrate how delays fluctuate over time, providing insight into critical monthly trends and complementing the broader seasonal findings.
 
 For most months, the average delay time remains relatively stable between 80 and 110 seconds. However, a significant spike in November strengthens the hypothesis that higher delays are associated with early-season temperature drops. This pattern suggests potential failures in switch heating systems, leading to freezing-related malfunctions.
 
+```{=html}
 <!--Following the seasonal analysis, it is crucial to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The “Monthly Overview of Train Delays” was specifically chosen to illustrate how delays fluctuate over time, helping to highlight critical monthly trends and complement the broader seasonal analysis.
 
 The average delay time remains relatively stable between **80 and 110 seconds** for most months, but a **significant spike in November** suggests potential disruptions, possibly due to **adverse weather conditions**, **increased travel demand**, or **network inefficiencies** during this period. Despite this increase in delay duration, November does not show a corresponding peak in the number of delayed trains, which remains **consistently high across the year** with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains stays **persistently high at around 60%**, suggesting that delays are driven not only by seasonal changes but also by **underlying systemic issues** such as **scheduling inefficiencies** or **network congestion**. -->
-
+```
 ```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
 library(gt)
@@ -511,6 +517,7 @@ overview_month_delay_table %>%
   )
 
 ```
+
 ```{r Overview Months Delays, echo=FALSE, message = FALSE, include=TRUE}
 # Reshape the table for long format (needed for facetting)
 library(tidyr)
@@ -551,8 +558,9 @@ ggplot(overview_month_delay_table, aes(x = month, y = avg_delay_seconds, group =
 
 Although high delays are observed in November, the **absolute average delay of around 2 minutes** is not particularly high or likely to cause major disruptions for worker arrivals at the production line. The **low delay count observed in December** suggests possible **data quality issues** or missing data, potentially due to removal during the data cleaning process. To refine the understanding of delays, further investigation is necessary, including an analysis of delay patterns on the **weekday level** and closer examination of **outliers** to identify specific cases that may disproportionately affect production reliability. The following section examines weekday-level patterns to identify specific days that may experience higher traffic congestion or scheduling inefficiencies, providing additional insights into potential operational improvements.
 
+### Daily Delay Analysis
 
-The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into scheduling or operational adjustments to reduce delays.
+The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into distributions of delay categories.
 
 ```{r Overview Weekdays Table, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
@@ -610,22 +618,31 @@ overview_delay_table %>%
 
 ```
 
-Question: At which weekday are more extreme delays? -> Boxplot with the outliers could show 
+***Question: At which weekday are more extreme delays? -\> Boxplot with the outliers could show***
 
-Question: At which time e.g. on thursdays is the delay the most?
+***Question: At which time e.g. on thursdays is the delay the most?***
 
+Having previously considered the general delay rates as a percentage, it is necessary to analyse them according to their intensity or length. Therefore it is helpful to investigate in so called outliers or extreme delays. As a first impression we analyzed the dataset by a boxplot.
 
-Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior** at Lucern Station. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.  
+```{r Delay per Weekday BoxPlot, echo=FALSE, message = FALSE, include=TRUE}
+ggplot(d.combined, aes(x = weekday, y = delay.calc.min, fill = weekday)) +
+    geom_boxplot() +
+    scale_y_sqrt()
+```
+
+<br> The boxplot provides an overview of the **distribution of delays across weekdays**, including **outliers or extreme delays**. The **box** represents the interquartile range (IQR), showing the middle 50% of delay durations, while the **line within the box** indicates the median delay. The **whiskers** extend to the minimum and maximum values within 1.5 times the IQR, and points beyond the whiskers are considered **outliers**.
+
+From the plot, we observe that the **median delay across all weekdays is relatively low**, indicating that most delays are short and within a manageable range. However, there are **numerous outliers across all days**, particularly on **Thursday and Friday**, where extreme delays frequently exceed **60 to 90 minutes**. This suggests that while delays are generally short, the **presence of occasional long delays could significantly impact punctuality** and cause production disruptions.
+
+Additionally, **Saturday and Sunday** show **slightly lower median delays and fewer extreme outliers** compared to weekdays, reinforcing the observation that weekends tend to experience **smoother operations** with less severe disruptions. The overall spread of the delays during the week, combined with the concentration of outliers, highlights the **importance of further investigating the causes of extreme delays** and identifying **targeted interventions to mitigate their impact**.
+
+In summary, while most train delays are relatively short, the significant number of extreme delays on certain weekdays, particularly **Thursday and Friday**, indicates the need for **outlier-specific analyses** and corrective measures to address these events effectively. It is interesting to note that previously, when looking at the percentage of delays per weekday (Summary of Train Delays by Weekday), the days Tuesday and Thursday were conspicuous with approx. 68% and 67% respectively. The analysis of extreme delays, however, shows that on Tuesdays, despite an average increase in the number of delays, delays are not unusually long and therefore pose a lower risk of influencing the punctuality of MadeUpCompany AG workers.
+
+### Hourly Delay Analysis
+
+Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior** at Lucern Station. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.
 
 The **line chart of the percentage of delayed trains** was chosen as it effectively highlights the **frequency of delayed trains** across different time windows, allowing us to identify key periods where delays are most common. However, this visualization does not capture the **severity of the delays**, which also requires further analysis to understand their impact on punctuality and overall operations.
-
-The plot illustrates the percentage of delayed trains across different time windows throughout the day, revealing distinct patterns linked to train traffic and operational challenges. For workers starting their **06:00 shift**, the key arrival window is between **05:00 and 05:30**. The plot shows **delay percentages of around 45% during this time window**, which, although lower than peak periods, still poses a **moderate risk to worker punctuality**. Any disruptions during this period could result in last-minute arrivals, especially if trains experience longer delays.  
-
-The next critical window is for workers starting the **14:00 shift**, who need to arrive between **13:00 and 13:30**. The plot shows **delay percentages of around 52%** during this period, indicating a **slightly higher risk** of delays compared to the morning shift window. While delays are less frequent than during the morning or evening peaks, they are still significant enough to warrant monitoring, particularly when compounded by other operational factors.  
-
-For the **22:00 shift**, workers must arrive between **21:00 and 21:30**. The plot indicates **delay rates of around 65%** during this time window, reflecting a **high-risk period** that could pose challenges for timely shift transitions. The cumulative delays from the evening rush (17:00 to 20:00) may contribute to the elevated risk, suggesting a need for **closer monitoring and possible contingency measures** during this period.  
-
-These observations highlight the need for **targeted interventions during the early morning (05:00 to 05:30) and evening (21:00 to 21:30) time windows**, where delays pose the greatest threat to on-time arrivals. Additionally, the **midday window before the 14:00 shift** requires attention due to its moderate delay rates, though it presents opportunities for **schedule optimization and maintenance planning**. By focusing on these key time windows, precise countermeasures can be developed to **minimize transport-related disruptions and improve production reliability** for MadeUpCompany AG.
 
 ```{r Delay per Time Window Line Chart, echo=FALSE, message=FALSE, include=TRUE}
 library(dplyr)
@@ -693,122 +710,15 @@ ggplot(overview_time_delay_table, aes(x = timeframe, y = percentage_delayed_trai
 
 ```
 
-```{r Delay per Time Window Table, echo=FALSE, message = FALSE, include=FALSE}
-library(dplyr)
-library(lubridate)
-library(gt)
+The plot illustrates the percentage of delayed trains across different time windows throughout the day, revealing distinct patterns linked to train traffic and operational challenges. For workers starting their **06:00 shift**, the key arrival window is between **05:00 and 05:30**. The plot shows **delay percentages of around 45% during this time window**, which, although lower than peak periods, still poses a **moderate risk to worker punctuality**. Any disruptions during this period could result in last-minute arrivals, especially if trains experience longer delays.
 
-# Step 1: Convert ANKUNFTSZEIT to proper datetime format
-d.combined <- d.combined %>%
-  mutate(datetime_ankunft = dmy_hm(ANKUNFTSZEIT))  # Parse as datetime
+The next critical window is for workers starting the **14:00 shift**, who need to arrive between **13:00 and 13:30**. The plot shows **delay percentages of around 52%** during this period, indicating a **slightly higher risk** of delays compared to the morning shift window. While delays are less frequent than during the morning or evening peaks, they are still significant enough to warrant monitoring, particularly when compounded by other operational factors.
 
-# Step 2: Extract the time portion and the hour
-d.combined <- d.combined %>%
-  mutate(
-    time_only = format(datetime_ankunft, "%H:%M"),  # Extract time as HH:MM string
-    hour = hour(datetime_ankunft)                   # Extract the hour as numeric
-  )
+For the **22:00 shift**, workers must arrive between **21:00 and 21:30**. The plot indicates **delay rates of around 65%** during this time window, reflecting a **high-risk period** that could pose challenges for timely shift transitions. The cumulative delays from the evening rush (17:00 to 20:00) may contribute to the elevated risk, suggesting a need for **closer monitoring and possible contingency measures** during this period.
 
-# Step 3: Create time windows for analysis
-d.combined <- d.combined %>%
-  mutate(timeframe = case_when(
-    hour >= 4 & hour < 5 ~ "4:00 - 5:00",
-    hour >= 5 & hour < 6 ~ "5:00 - 6:00",
-    hour >= 6 & hour < 7 ~ "6:00 - 7:00",
-    hour >= 7 & hour < 8 ~ "7:00 - 8:00",
-    hour >= 8 & hour < 9 ~ "8:00 - 9:00",
-    hour >= 9 & hour < 10 ~ "9:00 - 10:00",
-    hour >= 10 & hour < 11 ~ "10:00 - 11:00",
-    hour >= 11 & hour < 12 ~ "11:00 - 12:00",
-    hour >= 12 & hour < 13 ~ "12:00 - 13:00",
-    hour >= 13 & hour < 14 ~ "13:00 - 14:00",
-    hour >= 14 & hour < 15 ~ "14:00 - 15:00",
-    hour >= 18 & hour < 19 ~ "18:00 - 19:00",
-    hour >= 19 & hour < 20 ~ "19:00 - 20:00",
-    hour >= 20 & hour < 21 ~ "20:00 - 21:00",
-    hour >= 21 & hour < 22 ~ "21:00 - 22:00",
-    hour >= 22 & hour < 23 ~ "22:00 - 23:00",
-    TRUE ~ "Other"
-  ))
+These observations highlight the need for **targeted interventions during the early morning (05:00 to 05:30) and evening (21:00 to 21:30) time windows**, where delays pose the greatest threat to on-time arrivals. Additionally, the **midday window before the 14:00 shift** requires attention due to its moderate delay rates, though it presents opportunities for **schedule optimization and maintenance planning**. By focusing on these key time windows, precise countermeasures can be developed to **minimize transport-related disruptions and improve production reliability** for MadeUpCompany AG.
 
-# Step 4: Filter delayed trains
-d.delayed_trains <- d.combined %>%
-  filter(delay.category != "on time")
-
-# Step 5: Count total trains per time window
-total_trains_per_timeframe <- d.combined %>%
-  group_by(timeframe) %>%
-  summarise(total_trains = n())
-
-# Step 6: Summarize delayed trains by time window
-overview_time_delay_table <- d.delayed_trains %>%
-  group_by(timeframe) %>%
-  summarise(
-    delay_count = n(),
-    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE)
-  ) %>%
-  
-  # Step 7: Join with the total trains per time window
-  left_join(total_trains_per_timeframe, by = "timeframe") %>%
-  
-  # Step 8: Calculate the percentage of delayed trains
-  mutate(
-    percentage_delayed_trains = (delay_count / total_trains) * 100
-  ) %>%
-  
-  # Step 9: Convert timeframe to a factor with the correct order and sort
-  mutate(timeframe = factor(
-    timeframe,
-    levels = c(
-      "4:00 - 5:00", "5:00 - 6:00", "6:00 - 7:00", "7:00 - 8:00",
-      "8:00 - 9:00", "9:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00",
-      "12:00 - 13:00", "13:00 - 14:00", "14:00 - 15:00", 
-      "18:00 - 19:00", "19:00 - 20:00", "20:00 - 21:00",
-      "21:00 - 22:00", "22:00 - 23:00", "Other"
-    )
-  )) %>%
-  arrange(timeframe)
-
-# Display the table using gt
-overview_time_delay_table %>%
-  gt() %>%
-  tab_header(
-    title = "Summary of Train Delays by Time Window",
-    subtitle = "Total trains, delayed trains, and percentage delays"
-  ) %>%
-  fmt_number(
-    columns = c(avg_delay_seconds, percentage_delayed_trains),
-    decimals = 2
-  ) %>%
-  cols_label(
-    timeframe = "Time Window",
-    delay_count = "Delayed Trains",
-    avg_delay_seconds = "Average Delay (s)",
-    total_trains = "Total Trains",
-    percentage_delayed_trains = "Delayed (%)"
-  )
-
-
-```
-
-As priviously already mentioned is the length of delay not yet taken into account. Therefore it is helpful to investigate in so called outliers or extreme delays. As a first impression we analyzed the dataset by a boxplot.
-
-
-```{r Delay per Weekday BoxPlot, echo=FALSE, message = FALSE, include=TRUE}
-ggplot(d.combined, aes(x = weekday, y = delay.calc.min, fill = weekday)) +
-    geom_boxplot() +
-    scale_y_sqrt()
-```
-<br>
-The boxplot provides an overview of the **distribution of delays across weekdays**, including **outliers or extreme delays**. The **box** represents the interquartile range (IQR), showing the middle 50% of delay durations, while the **line within the box** indicates the median delay. The **whiskers** extend to the minimum and maximum values within 1.5 times the IQR, and points beyond the whiskers are considered **outliers**. 
-
-From the plot, we observe that the **median delay across all weekdays is relatively low**, indicating that most delays are short and within a manageable range. However, there are **numerous outliers across all days**, particularly on **Thursday and Friday**, where extreme delays frequently exceed **60 to 90 minutes**. This suggests that while delays are generally short, the **presence of occasional long delays could significantly impact punctuality** and cause production disruptions. 
-
-Additionally, **Saturday and Sunday** show **slightly lower median delays and fewer extreme outliers** compared to weekdays, reinforcing the observation that weekends tend to experience **smoother operations** with less severe disruptions. The overall spread of the delays during the week, combined with the concentration of outliers, highlights the **importance of further investigating the causes of extreme delays** and identifying **targeted interventions to mitigate their impact**.
-
-In summary, while most train delays are relatively short, the significant number of extreme delays on certain weekdays, particularly **Thursday and Friday**, indicates the need for **outlier-specific analyses** and corrective measures to address these events effectively. It is interesting to note that previously, when looking at the percentage of delays per weekday (Summary of Train Delays by Weekday), the days Tuesday and Thursday were conspicuous with approx. 68% and 67% respectively. The analysis of extreme delays, however, shows that on Tuesdays, despite an average increase in the number of delays, delays are not unusually long and therefore pose a lower risk of influencing the punctuality of MadeUpCompany AG workers.
-
-To further understand the nature of delays and their impact, it is important to investigate how delays vary in severity on average throughout the day. While previous analyses have focused on general patterns and extreme outliers, examining specific delay categories (5-15 min, 15-30 min, and >30 min) can help identify critical time windows where even moderate or short delays may accumulate and disrupt operations. The following line graph provides insights into the total count of delays per category, highlighting periods of both high and low delay frequencies.
+To further understand the nature of delays and their impact, it is important to investigate how delays vary in severity on average throughout the day. While previous analyses have focused on general patterns and extreme outliers, examining specific delay categories (5-15 min, 15-30 min, and \>30 min) can help identify critical time windows where even moderate or short delays may accumulate and disrupt operations. The following line graph provides insights into the total count of delays per category, highlighting periods of both high and low delay frequencies.
 
 ```{r AVG Count of Delayed Trains by Delay Category and Time Window Line Graph, echo=FALSE, message = FALSE, include=TRUE}
 library(dplyr)
@@ -871,18 +781,15 @@ The line graph reveals clear differences in the distribution and frequency of tr
 
 The **15-30 minute delay category** (green line) remains **fairly stable throughout the day**, showing **minor fluctuations** with slightly elevated counts during the **morning and evening rush hours**. Although less frequent than short delays, this category presents a **moderate risk to punctuality**, particularly during **high-traffic periods** when even minor delays can **compound operational issues**.
 
-The **>30 minute delay category** (blue line) is the **least frequent**, with consistently low counts across all time windows. However, even though these **extreme delays are rare**, their **potential impact on worker punctuality and production reliability** could be significant, especially if they occur during **critical time windows**.
+The **\>30 minute delay category** (blue line) is the **least frequent**, with consistently low counts across all time windows. However, even though these **extreme delays are rare**, their **potential impact on worker punctuality and production reliability** could be significant, especially if they occur during **critical time windows**.
 
 The **white-highlighted areas** represent **time windows with generally low delay counts**, particularly between **02:00-06:00**, **11:00-16:00** and **20:00-23:00**, when traffic is lighter. The identified time windows could present optimal commuting frames when workers delay due to public transport could be minimized.
 
-Comments:
-- Analyze Every month separate with boxplot to investigate if Tue and Fri have throughout the year higher delays
-- Analyze November in detail since there have been the longest delays. Has it something to do with the Weather?
-
+Comments: - Analyze Every month separate with boxplot to investigate if Tue and Fri have throughout the year higher delays - Analyze November in detail since there have been the longest delays. Has it something to do with the Weather?
 
 ## Assessing the Impact of Weather on Train Delays
-- Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
 
+-   Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
 
 ```{r average delays on rainy vs dry days}
 ### Compare average delays on rainy vs dry days !!!! ---------------------------------------------
@@ -901,6 +808,7 @@ d.combined %>%
 ## => INTERESTING but maybe not significant!!!
 ## OUTPUT: mean_delay in minutes
 ```
+
 ```{r Delays Under Extreme Weather Conditions}
 ### Delays Under Extreme Weather Conditions !!!!!! ---------------------------------------------
 
@@ -915,14 +823,9 @@ d.combined %>%
 ## => INTERESTING
 ```
 
-
 ## Vacation Peaks in Switzerland
 
-Vacation peaks are to be expected in :
-- Easter Break (April)
-- Summer Holidays (July, August)
-- Autumn Holidays (October)
-- Christmas (Late December and January)
+Vacation peaks are to be expected in : - Easter Break (April) - Summer Holidays (July, August) - Autumn Holidays (October) - Christmas (Late December and January)
 
 ```{r Vacation Peaks, echo=FALSE , include=FALSE}
 # d.vacation<- d.delayed_trains %>% 
@@ -936,8 +839,6 @@ plot(only_january$delay.calc.min~only_january$datetime_ankunft)
 
 ```
 
-
-
 # Use of Generative AI
 
 ChatGPT can be a valuable tool for various aspects of programming, particularly for detecting syntax errors and generating initial plots quickly. It provides immediate feedback, making it easier for users to identify issues and visually present their data. This speed and convenience can help jump-start the coding process, especially for beginners or when exploring new concepts.
@@ -949,7 +850,6 @@ Another significant concern is that the code generated by ChatGPT is often done 
 As data scientists, it is essential not only to understand the technical aspects of coding but also to gain a deep understanding of the data itself. Data analysis is a creative process that involves continuous iteration, exploration, and insight. To arrive at meaningful conclusions, data scientists must engage with domain experts and other stakeholders throughout the analysis process. This collaboration helps ensure that the results are accurate, relevant, and actionable, ultimately leading to well-informed decisions.
 
 In conclusion, while ChatGPT offers valuable assistance in coding, especially for quick debugging and basic tasks, it is important for users to ensure they understand their code thoroughly and the data they are working with. Achieving effective modularity, clarity, and efficiency requires a combination of technical expertise and creativity, with ongoing collaboration, to ensure the success of data analysis projects.
-
 
 # Results
 
