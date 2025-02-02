@@ -789,7 +789,108 @@ Comments: - Analyze Every month separate with boxplot to investigate if Tue and 
 
 ## Assessing the Impact of Weather on Train Delays
 
--   Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
+After an initial analysis of the transport data, the focus shifts to a deeper exploration of the weather data.
+While the weather data is aggregated by day, the transport data provides delay times for each incoming train. As a first step, the delay times must be aggregated by day, which can be done by calculating the average delay for each day.
+
+
+```{r Calculating average per day, include=TRUE, echo=TRUE}
+#Function to add a column with aggregated delay per day to dataset
+add_aggregated_delay <- function(df_) {
+    df_ <- df_ %>%
+    mutate(BETRIEBSTAG = as.Date(BETRIEBSTAG, format = "%d.%m.%Y")) %>%
+    group_by(BETRIEBSTAG) %>%
+    mutate(delay.agg.day = mean(delay.calc.min, na.rm = TRUE)) %>%
+    ungroup()
+    return(df_) 
+}
+
+# Add aggregated delay to datasets
+d.combined <- add_aggregated_delay(d.combined)
+#d.delayed_trains <-  add_aggregated_delay(d.delayed_trains)
+#d.delayed_trains_extreme <-  add_aggregated_delay(d.delayed_trains_extreme)
+
+```
+
+Plotting the delay as a time series reveals two periods where the average temperature falls below 0°C (highlighted in Blue).
+
+A sharp increase in delays occurs in November, but not in January. The initial drop below freezing in November probably causes failures due to undetected issues in switch heating systems. By January, the railway operator (SBB) is likely better prepared, as the prolonged winter has already exposed and resolved most defects.
+
+
+```{r Delays vs Temperature, include=TRUE}
+library(patchwork)
+
+plot_delay <- ggplot() +
+  geom_line(data = d.combined, aes(x = BETRIEBSTAG, y = delay.agg.day))
+#geom_line(data = d.delayed_trains, aes(x = BETRIEBSTAG, y = delay.agg.day)) +
+#geom_line(data = d.delayed_trains_extreme, aes(x = BETRIEBSTAG, y = delay.agg.day)) +
+
+plot_temperature <- ggplot(data = d.combined) +
+  geom_ribbon(aes(x = BETRIEBSTAG, ymin = pmin(Lufttemperatur, 0), ymax = 0), fill = "blue", alpha = 0.3) + 
+  geom_line(aes(x = BETRIEBSTAG, y = Lufttemperatur))
+
+plot_delay / plot_temperature 
+
+```
+
+```{r Look at month separately}
+
+for (coldmonth in c("October","November", "December", "January", "February")){
+  subset.coldmonth <-  d.combined %>% 
+    filter(month == coldmonth)
+
+  
+  # Plot 1: Delay plot
+  plot_delay <- ggplot() +
+    geom_line(data = subset.coldmonth, aes(x = BETRIEBSTAG, y = delay.agg.day))  +
+    labs(y = "Average Delay (min)") +
+    theme_minimal()
+  
+  # Plot 2: Temperature plot
+  plot_temperature <- ggplot() +
+    geom_line(data = subset.coldmonth, aes(x = BETRIEBSTAG, y = Lufttemperatur)) +
+    scale_y_continuous(name = "Air Temperature (°C)") +
+    theme_minimal()
+  
+  # Combine the two plots vertically
+  combined_plot <- plot_delay / plot_temperature 
+  
+  print(combined_plot)
+  
+}
+
+```
+A closer look at November suggests that the initial temperature drop led to the sharp increase in delays. However, daily aggregated delay data lacks detail. For a clearer analysis, weather data should be available at an hourly level to better capture its impact on delays. With such limited data, producing a reliable weather model is not feasible, but a qualitative assessment was possible. SBB also confirms that they have the highest delays in November. For more Information follow this link [here](https://news.sbb.ch/medien/dossiers/dossier/122215/puenktlichkeit#:~:text=Im%20Monaten%20Oktober%20und%20November,wenn%20die%20Gleise%20feucht%20sind).
+
+```{r Only look at November, include=TRUE}
+
+for (coldmonth in c("November")){
+  subset.coldmonth <-  d.combined %>% 
+    filter(month == coldmonth)
+
+  
+  # Plot 1: Delay plot
+  plot_delay <- ggplot() +
+    geom_line(data = subset.coldmonth, aes(x = BETRIEBSTAG, y = delay.agg.day))  +
+    labs(y = "Average Delay (min)") +
+    theme_minimal()
+  
+  # Plot 2: Temperature plot
+  plot_temperature <- ggplot() +
+    geom_line(data = subset.coldmonth, aes(x = BETRIEBSTAG, y = Lufttemperatur)) +
+    scale_y_continuous(name = "Air Temperature (°C)") +
+    theme_minimal()
+  
+  # Combine the two plots vertically
+  combined_plot <- plot_delay / plot_temperature 
+  
+  print(combined_plot)
+  
+}
+
+```
+
+
+
 
 ```{r average delays on rainy vs dry days}
 ### Compare average delays on rainy vs dry days !!!! ---------------------------------------------
