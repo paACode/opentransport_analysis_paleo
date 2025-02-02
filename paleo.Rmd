@@ -415,8 +415,7 @@ The "Scatter Plot with Jitter and Regression Line" serves as a representative ex
 
 ## A Seasonal, Monthly and Weekday Perspective
 
-As an initial step, it makes sense to examine the seasonal patterns of train delays. Overall, the delays appear to be quite consistent across all four seasons. The summary statistics presented below reveal that, on average, delays remain steady throughout the year, with no significant fluctuations from one season to the next.
-
+To begin the analysis, it’s useful to explore the seasonal patterns of train delays. Overall, the delays show a consistent trend across all four seasons, with average delay times remaining stable throughout the year. However, when examining the maximum values, it becomes evident that Fall stands out with a notably higher maximum delay. This may be due to a single outlier, and further investigation is necessary before making any conclusions.
 
 ```{r Seaonsal analysis statistics, include=TRUE}
 d.delayed_trains <- d.combined %>% 
@@ -432,10 +431,10 @@ season.tbl <- d.delayed_trains %>%
     `3rd Qu.` = quantile(delay.calc.min, 0.75, na.rm = TRUE),
     Max = max(delay.calc.min, na.rm = TRUE)
   )
-kable(season.tbl, caption = "Summary of Train Delays by Season")
+kable(season.tbl, caption = "Summary of Train Delays[min] by Season")
 ```
 
-Upon closer examination with a jittered boxplot, we observe that the Fall season exhibits a higher frequency of outliers compared to other seasons. Surprisingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. One possible explanation is that in Fall, temperatures drop for the first time, potentially revealing failures in switch heating systems, which could lead to freezing-related disruptions. However, delays appear to be lower in Winter.
+Upon closer examination with a jittered boxplot, indeed one can observe that the Fall season exhibits a higher frequency of outliers compared to other seasons. Surprisingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. One possible explanation is that in Fall, temperatures drop for the first time, potentially revealing failures in switch heating systems, which could lead to freezing-related disruptions. 
 
 Further weather analysis in subsequent chapters will explore this aspect in more detail, offering a clearer understanding of how weather impacts delays.
 
