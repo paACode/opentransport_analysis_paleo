@@ -435,7 +435,9 @@ season.tbl <- d.delayed_trains %>%
 kable(season.tbl, caption = "Summary of Train Delays by Season")
 ```
 
-However, upon further inspection with a jittered boxplot , we observe that the Fall season exhibits a higher frequency of outliers compared to the other seasons. Interestingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. This can potentially be explained by the fact that in November, the first snowfall typically occurs, which could challenge operations as SBB (Swiss Federal Railways) adjusts to adverse weather conditions. Further weather analysis in subsequent chapters will explore this aspect in more detail, offering a clearer understanding of how weather impacts delays, especially in the winter months.
+Upon closer examination with a jittered boxplot, we observe that the Fall season exhibits a higher frequency of outliers compared to other seasons. Surprisingly, Winter does not show this pattern, despite the expectation that colder months might lead to more significant delays. One possible explanation is that in Fall, temperatures drop for the first time, potentially revealing failures in switch heating systems, which could lead to freezing-related disruptions. However, delays appear to be lower in Winter This could be attributed to the holiday season in Switzerland, particularly around Christmas, when public transport may experience reduced passenger traffic.
+
+Further weather analysis in subsequent chapters will explore this aspect in more detail, offering a clearer understanding of how weather impacts delays.
 
 ```{r Season Boxplot, include = TRUE}
 ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
@@ -447,10 +449,13 @@ ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
 
 ```
 
+Building on the seasonal analysis, it is essential to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The "Monthly Overview of Train Delays" was chosen to illustrate how delays fluctuate over time, providing insight into critical monthly trends and complementing the broader seasonal findings.
 
-Following the seasonal analysis, it is crucial to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The “Monthly Overview of Train Delays” was specifically chosen to illustrate how delays fluctuate over time, helping to highlight critical monthly trends and complement the broader seasonal analysis.
+For most months, the average delay time remains relatively stable between 80 and 110 seconds. However, a significant spike in November strengthens the hypothesis that higher delays are associated with early-season temperature drops. This pattern suggests potential failures in switch heating systems, leading to freezing-related malfunctions.
 
-The average delay time remains relatively stable between **80 and 110 seconds** for most months, but a **significant spike in November** suggests potential disruptions, possibly due to **adverse weather conditions**, **increased travel demand**, or **network inefficiencies** during this period. Despite this increase in delay duration, November does not show a corresponding peak in the number of delayed trains, which remains **consistently high across the year** with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains stays **persistently high at around 60%**, suggesting that delays are driven not only by seasonal changes but also by **underlying systemic issues** such as **scheduling inefficiencies** or **network congestion**.
+<!--Following the seasonal analysis, it is crucial to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The “Monthly Overview of Train Delays” was specifically chosen to illustrate how delays fluctuate over time, helping to highlight critical monthly trends and complement the broader seasonal analysis.
+
+The average delay time remains relatively stable between **80 and 110 seconds** for most months, but a **significant spike in November** suggests potential disruptions, possibly due to **adverse weather conditions**, **increased travel demand**, or **network inefficiencies** during this period. Despite this increase in delay duration, November does not show a corresponding peak in the number of delayed trains, which remains **consistently high across the year** with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains stays **persistently high at around 60%**, suggesting that delays are driven not only by seasonal changes but also by **underlying systemic issues** such as **scheduling inefficiencies** or **network congestion**. -->
 
 ```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
 library(dplyr)
