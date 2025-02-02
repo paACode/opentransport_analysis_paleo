@@ -895,6 +895,39 @@ In conclusion, while ChatGPT offers valuable assistance in coding, especially fo
 ## Assessing the Impact of Weather on Train Delays
 - Plot of 0 to -5 degree and Niederschlag, to see whether snowfall influences delays at this temp range
 
+
+```{r average delays on rainy vs dry days}
+### Compare average delays on rainy vs dry days !!!! ---------------------------------------------
+
+
+library(dplyr)
+# Define "rainy" as days with >5mm precipitation
+d.combined <- d.combined %>%
+  mutate(rainy_day = ifelse(Niederschlag > 5, "Rainy", "Dry"))
+
+# Compare mean delay
+d.combined %>%
+  group_by(rainy_day) %>%
+  summarise(mean_delay = mean(delay.calc.min, na.rm = TRUE))
+
+## => INTERESTING but maybe not significant!!!
+## OUTPUT: mean_delay in minutes
+```
+```{r Delays Under Extreme Weather Conditions}
+### Delays Under Extreme Weather Conditions !!!!!! ---------------------------------------------
+
+
+d.combined %>%
+  mutate(extreme_weather = ifelse(Niederschlag > 20 | Gesamtschneehöhe > 20, "Extreme", "Normal")) %>%
+  ggplot(aes(x = extreme_weather, y = delay.calc.min)) +
+  geom_boxplot() +
+  labs(title = "Verspätungen bei Extremwetter", x = "Wetterbedingungen", y = "Verspätung (min)")+
+    scale_y_sqrt()
+
+## => INTERESTING
+```
+
+
 # Results
 
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
