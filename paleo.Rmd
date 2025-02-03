@@ -888,11 +888,13 @@ for (coldmonth in c("November")){
 }
 
 ```
+```{r linear regression model}
+model <- lm(delay.calc.min ~ Niederschlag + Lufttemperatur, data = d.combined)
+summary(model)
+```
 
 
-
-
-```{r average delays on rainy vs dry days}
+```{r average delays on rainy vs dry days, include=TRUE, echo=TRUE}
 ### Compare average delays on rainy vs dry days !!!! ---------------------------------------------
 
 
@@ -907,10 +909,17 @@ d.combined %>%
   summarise(mean_delay = mean(delay.calc.min, na.rm = TRUE))
 
 ## => INTERESTING but maybe not significant!!!
-## OUTPUT: mean_delay in minutes
+
+## hence a t-test
+wilcox.test(delay.calc.min ~ rainy_day, data = d.combined, na.rm = TRUE)
+
+## => NOT EQUAL, hence difference in delays between "Rainy" and "Dry" days is highly statistically significant
+
+
+
 ```
 
-```{r Delays Under Extreme Weather Conditions}
+```{r Delays Under Extreme Weather Conditions, include=TRUE}
 ### Delays Under Extreme Weather Conditions !!!!!! ---------------------------------------------
 
 
@@ -923,6 +932,26 @@ d.combined %>%
 
 ## => INTERESTING
 ```
+
+```{r correlation matrix, include=TRUE}
+# Select relevant columns
+weather_vars <- c("Globalstrahlung", "Gesamtschneehöhe", "Gesamtbewölkung",
+                  "Luftdruck", "Niederschlag", "Sonnenscheindauer",
+                  "Lufttemperatur", "Lufttemperatur..min.", 
+                  "Lufttemperatur..max.", "Luftfeuchtigkeit", "delay.calc.min")
+
+# Compute correlation matrix
+cor_matrix <- cor(d.combined[, weather_vars], use = "complete.obs")
+
+# Print correlation matrix
+print(cor_matrix)
+
+# Visualize correlations
+library(ggcorrplot)
+ggcorrplot(cor_matrix, lab = TRUE, lab_size = 3)
+
+```
+
 
 ## Vacation Peaks in Switzerland
 
