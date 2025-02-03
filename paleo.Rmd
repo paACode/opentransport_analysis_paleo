@@ -2,7 +2,11 @@
 title: "Paleo an opentransport Analysis"
 author: "Leo Dost and Pascal Ackermann"
 date: "30.01.2025"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2   
+    toc_float: true 
 ---
 
 ```{r, echo=FALSE , include=FALSE}
