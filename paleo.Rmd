@@ -1090,20 +1090,71 @@ summary(lm_model)
 
 The **statistical analysis shows that no valid conclusions** regarding the **adjustment of shift schedules** can be drawn based on the current results. The **small difference in average delays** between rainy and dry days suggests that **general rainfall does not warrant significant changes** in shift planning. Instead, **managers should focus on other factors**—such as **temperature drops, snow accumulation, and heavy rainfall events**—that may have a stronger and more reliable impact on delays. Additionally, specific weather thresholds, such as **prolonged or heavy rainfall (e.g., >10 mm)**, could still be monitored for potential effects, though further analysis is needed to confirm their relevance.
 
+### **Delays Under Extreme Weather Conditions**
+
+After establishing that general rainfall **does not significantly affect train delays**, we now shift our focus to **extreme weather conditions**—days with either **more than 20 mm of precipitation** or **significant snowfall events**. Previously, we classified extreme weather based on **total snow depth ("Gesamtschneehöhe")**, but this approach was problematic as snow depth **accumulates or decreases** depending on various conditions (e.g., melting or compaction) and **does not directly indicate daily snowfall**. To correct this, we calculated the **daily snowfall rate** by subtracting the previous day’s snow depth from the current day’s depth. Days with **a snowfall rate greater than 10 cm** were classified as having **extreme snowfall**. This adjustment ensures that only days with **active snowfall** are classified as extreme, resulting in a more accurate classification of weather conditions.
+
+Additionally, we addressed **NaNs and negative delays** in the dataset. NaNs introduced by the snowfall rate calculation were replaced with **0 snowfall**, assuming no snowfall if the difference could not be calculated. Negative delays, potentially representing early arrivals or data anomalies, were **set to 0** to ensure that the boxplot and square root transformation operate correctly.
+
+The updated boxplot compares train delays under **extreme weather** and **normal weather conditions**. **The interquartile ranges (boxes) and medians are fairly similar**, indicating that typical delays do not significantly increase on extreme weather days. However, **a slightly larger spread in the upper range** and **a marginally higher mean delay** suggest a small increase in variability. While the number of delays exceeding 60 minutes is slightly higher on extreme weather days (3 observations compared to 1 on normal days), this difference is **too minor to be considered practically significant**.
+
+This indicates that **most delays remain manageable even during extreme weather conditions**, and extreme outliers are **too infrequent to pose a consistent risk**. The occasional severe delays could be attributed to **localized events**, such as track blockages, switch failures, or temporary snow accumulation. As such, the data does not justify major adjustments to shift schedules based on general extreme weather forecasts.
+
 
 ```{r Delays Under Extreme Weather Conditions, include=TRUE}
-### Delays Under Extreme Weather Conditions !!!!!! ---------------------------------------------
 
+# Calculate daily snowfall rate and replace NA values
+d.combined <- d.combined %>%
+  arrange(BETRIEBSTAG) %>%
+  mutate(snowfall_rate = Gesamtschneehöhe - lag(Gesamtschneehöhe, default = 0)) %>%
+  replace_na(list(snowfall_rate = 0))  # Replace NaNs with 0
 
+# Ensure delays are non-negative
+d.combined <- d.combined %>%
+  mutate(delay.calc.min = ifelse(delay.calc.min < 0, 0, delay.calc.min))
+
+# Classify extreme weather based on rainfall or significant snowfall (>10 cm)
+d.combined <- d.combined %>%
+  mutate(extreme_weather = ifelse(Niederschlag > 20 | snowfall_rate > 10, "Extreme", "Normal"))
+
+# Boxplot of delays under extreme vs. normal weather
 d.combined %>%
-  mutate(extreme_weather = ifelse(Niederschlag > 20 | Gesamtschneehöhe > 20, "Extreme", "Normal")) %>%
   ggplot(aes(x = extreme_weather, y = delay.calc.min)) +
   geom_boxplot() +
-  labs(title = "Verspätungen bei Extremwetter", x = "Wetterbedingungen", y = "Verspätung (min)")+
-    scale_y_sqrt()
+  labs(title = "Delays Under Extreme Weather Conditions", x = "Weather Conditions", y = "Delays (min)") +
+  scale_y_sqrt()  # Square root transformation with cleaned data
 
-## => INTERESTING
+
 ```
+
+To further investigate the reliability of our conclusions, we compared the **sample sizes of train delays under extreme and normal weather conditions**. The bar chart reveals that the number of observations under **normal weather conditions is significantly larger** than that of **extreme weather conditions**. This imbalance highlights a **key limitation of the analysis**: the smaller sample size of extreme weather data reduces its **statistical reliability** and makes it **less comparable** to normal weather data.
+
+The smaller sample size of extreme weather days can be attributed to the **rarity of severe weather events**, such as days with heavy rainfall or significant snowfall. As a result, while we observe minor differences in delay patterns and some extreme outliers, the **limited data means these differences should be interpreted with caution**. More data on extreme weather conditions would be needed to **draw stronger, more reliable conclusions** about its impact on delays.
+
+```{r comparison of samples sizes, include=TRUE}
+library(dplyr)
+library(ggplot2)
+
+# Summarize the number of delay records in each group
+sample_sizes <- d.combined %>%
+  group_by(extreme_weather) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Display sample size summary as a table
+print(sample_sizes)
+
+# Bar chart to visualize sample sizes
+ggplot(sample_sizes, aes(x = extreme_weather, y = count, fill = extreme_weather)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  labs(title = "Comparison of Sample Sizes: Extreme vs. Normal Weather",
+       x = "Weather Condition", y = "Number of Delay Observations") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Extreme" = "red", "Normal" = "gray"))
+
+```
+
+
 
 ```{r correlation matrix, include=TRUE}
 # Select relevant columns
@@ -1115,8 +1166,6 @@ weather_vars <- c("Globalstrahlung", "Gesamtschneehöhe", "Gesamtbewölkung",
 # Compute correlation matrix
 cor_matrix <- cor(d.combined[, weather_vars], use = "complete.obs")
 
-# Print correlation matrix
-print(cor_matrix)
 
 # Visualize correlations
 library(ggcorrplot)
