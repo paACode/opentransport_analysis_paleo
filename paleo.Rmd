@@ -792,7 +792,61 @@ The **\>30 minute delay category** (blue line) is the **least frequent**, with c
 
 The **white-highlighted areas** represent **time windows with generally low delay counts**, particularly between **02:00-06:00**, **11:00-16:00** and **20:00-23:00**, when traffic is lighter. The identified time windows could present optimal commuting frames when workers delay due to public transport could be minimized.
 
-Comments: - Analyze Every month separate with boxplot to investigate if Tue and Fri have throughout the year higher delays - Analyze November in detail since there have been the longest delays. Has it something to do with the Weather?
+As a final step in the train delay analysis, we decided to investigate whether certain weekdays exhibit **distinct delay patterns throughout the day**. By analyzing the **percentage of delayed trains for each time window** and comparing daily trends, we aim to identify differences in delay behavior between weekdays and weekends. This analysis will provide further clarity on how **delay patterns evolve day-to-day** and whether **weekday-specific scheduling adjustments are warranted**.
+
+```{r Analysis of each weekday, include=TRUE, fig.width=10, fig.height=12}
+
+
+# Step 4: Count total trains per weekday and time window
+total_trains_per_timeframe <- d.combined %>%
+  group_by(weekday, timeframe) %>%
+  summarise(total_trains = n(), .groups = "drop")
+
+# Step 5: Summarize delayed trains by weekday and time window
+overview_time_delay_table <- d.delayed_trains %>%
+  group_by(weekday, timeframe) %>%
+  summarise(
+    delay_count = n(),
+    avg_delay_seconds = mean(delay.calc.s, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  
+  # Step 6: Join with the total trains per time window
+  left_join(total_trains_per_timeframe, by = c("weekday", "timeframe")) %>%
+  
+  # Step 7: Calculate the percentage of delayed trains
+  mutate(percentage_delayed_trains = (delay_count / total_trains) * 100) %>%
+  
+  # Step 8: Convert timeframe to a factor and sort
+  mutate(timeframe = factor(
+    timeframe,
+    levels = paste0(sprintf("%02d", 0:23), ":00 - ", sprintf("%02d", 1:24 %% 24), ":00")
+  )) %>%
+  arrange(weekday, timeframe)
+
+# Step 9: Create the combined plot with facets for each weekday
+ggplot(overview_time_delay_table, aes(x = timeframe, y = percentage_delayed_trains, group = 1)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 2) +
+  facet_wrap(~ weekday, ncol = 1, strip.position = "top") +  # Facet by weekday in a vertical layout
+  labs(
+    title = "Percentage of Delayed Trains by Time Window for Each Weekday",
+    x = "Time Window",
+    y = "Percentage of Delayed Trains (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold", size = 10)
+  )
+
+
+```
+The plot highlights that **Monday through Friday** follow similar delay patterns, with noticeable peaks during the **early morning (05:00-07:00), midday (12:00-14:00), and evening (17:00-20:00)**. These peaks reflect periods of high train traffic, coinciding with **major shift changes and commuting times for employees**. The delay percentages are generally **higher on Tuesday and Thursday**, confirming earlier observations that these days face **greater operational challenges** and require careful planning of **buffer times and flexible work schedules** to minimize disruptions.
+
+On the other hand, **weekend days—Saturday and Sunday—exhibit relatively stable and lower delay percentages across most time windows**. The absence of major peaks indicates **reduced traffic and fewer operational bottlenecks**, making these days ideal for **routine maintenance and schedule adjustments**. The smoother weekend patterns suggest that optimizing **staffing and transport planning on weekends** could improve overall production efficiency without significantly impacting employee punctuality.
+
+In conclusion, this final plot demonstrates that **weekday-specific planning is essential**, particularly on **high-risk days like Tuesday and Thursday**. By contrast, the stability of weekend delays provides opportunities for **resource optimization and maintenance planning**. Together, these insights contribute to a **holistic understanding of how delays affect production** at MadeUpCompany AG and support the development of **effective, data-driven strategies** for mitigating transport-related disruptions.
 
 ## Assessing the Impact of Weather on Train Delays
 
