@@ -2,11 +2,14 @@
 title: "Paleo an opentransport Analysis"
 author: "Leonard Dost and Pascal Ackermann"
 date: "30.01.2025"
-output: 
+output:
   html_document:
     toc: true
-    toc_depth: 2   
-    toc_float: true 
+    toc_depth: 2
+    toc_float: true
+  pdf_document:
+    toc: true
+    toc_depth: '2'
 ---
 
 ```{r, echo=FALSE , include=FALSE}
@@ -1043,31 +1046,50 @@ model <- lm(delay.calc.min ~ Niederschlag + Lufttemperatur, data = d.combined)
 summary(model)
 ```
 
+### **Impact of Rainy Days on Train Delays**
 
-```{r average delays on rainy vs dry days, include=TRUE, echo=TRUE}
-### Compare average delays on rainy vs dry days !!!! ---------------------------------------------
-
-
-library(dplyr)
+To further investigate **weather-induced disruptions**, we analyzed the **difference in average delays between rainy and dry days**. Rainy days were defined as days with **more than 5 mm of precipitation**, while dry days were those with **5 mm or less**. This comparison aims to uncover whether **rainfall significantly contributes to train delays** and how this insight can inform **shift production planning**.
+```{r Define rainy days, include=TRUE, echo=TRUE}
 # Define "rainy" as days with >5mm precipitation
 d.combined <- d.combined %>%
   mutate(rainy_day = ifelse(Niederschlag > 5, "Rainy", "Dry"))
+```
 
-# Compare mean delay
+```{r Compare mean delay of rainy vs dry days, include=FALSE}
 d.combined %>%
   group_by(rainy_day) %>%
   summarise(mean_delay = mean(delay.calc.min, na.rm = TRUE))
+```
+| condition | mean delay [min]|
+|:----------------------:|:----------------------:|
+| dry | 0.7050949 |
+| rainy | 0.9855824 |
 
-## => INTERESTING but maybe not significant!!!
+#### **Key Findings:**
+An initial comparison of mean delays reveals that **rainy days** experience **slightly longer average delays** (**0.99 minutes**) compared to **dry days** (**0.70 minutes**). Although statistically significant, the **difference of 0.28 minutes** suggests that **rainfall alone is not a major contributor to overall train delays**. The **small effect size** indicates that while rain may have some impact, **other factors likely play a more significant role**.
 
-## hence a t-test
+
+#### **Statistical Validation:**
+A **Wilcoxon rank-sum test** confirms that the difference between delays on rainy and dry days is **highly statistically significant** (**p-value < 2.2e-16**). However, regression analysis reveals that **rainfall explains only 0.26% of the variation in delays** (**R² = 0.0026**). This low R² value demonstrates that **rainfall, by itself, is not a reliable predictor of train delays**.
+
+```{r rainy vs dry days stat analysis, include=TRUE}
+## statistical analysis by wilcoxon test
 wilcox.test(delay.calc.min ~ rainy_day, data = d.combined, na.rm = TRUE)
 
-## => NOT EQUAL, hence difference in delays between "Rainy" and "Dry" days is highly statistically significant
+## analyze for r square hence linear model
+lm_model <- lm(delay.calc.min ~ rainy_day, data = d.combined)
+summary(lm_model)
 
+```
+```{r rainy vs dry days linear model}
 
 
 ```
+
+#### **Managerial Implications:**
+
+The **statistical analysis shows that no valid conclusions** regarding the **adjustment of shift schedules** can be drawn based on the current results. The **small difference in average delays** between rainy and dry days suggests that **general rainfall does not warrant significant changes** in shift planning. Instead, **managers should focus on other factors**—such as **temperature drops, snow accumulation, and heavy rainfall events**—that may have a stronger and more reliable impact on delays. Additionally, specific weather thresholds, such as **prolonged or heavy rainfall (e.g., >10 mm)**, could still be monitored for potential effects, though further analysis is needed to confirm their relevance.
+
 
 ```{r Delays Under Extreme Weather Conditions, include=TRUE}
 ### Delays Under Extreme Weather Conditions !!!!!! ---------------------------------------------
