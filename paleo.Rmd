@@ -1,6 +1,6 @@
 ---
 title: "Paleo an opentransport Analysis"
-author: "Leo Dost and Pascal Ackermann"
+author: "Leonard Dost and Pascal Ackermann"
 date: "30.01.2025"
 output: 
   html_document:
@@ -793,8 +793,149 @@ Comments: - Analyze Every month separate with boxplot to investigate if Tue and 
 
 ## Assessing the Impact of Weather on Train Delays
 
-After an initial analysis of the transport data, the focus shifts to a deeper exploration of the weather data.
-While the weather data is aggregated by day, the transport data provides delay times for each incoming train. As a first step, the delay times must be aggregated by day, which can be done by calculating the average delay for each day.
+Weather conditions are often considered a significant factor influencing public transport reliability, which in turn can impact worker punctuality and overall production efficiency. To investigate the relationship between weather and train delays, this section analyzes key meteorological variables, including temperature, sun hours, precipitation, and snow height. By understanding general patterns in these variables, we aim to establish a foundation for assessing their potential contribution to train delays.
+
+### Overview of Monthly Average Weather Conditions
+
+As a first step in our weather data analysis, we examined key meteorological metrics that are relevant to public transport performance, including **average temperature (°C)**, **average precipitation (mm)**, **average sunshine duration (hours)**, and **average snow depth (cm)**. These variables were analyzed on a **monthly basis** to capture seasonal variations and provide a clear understanding of how weather fluctuates throughout the year.
+
+The table highlights distinct seasonal trends. **Temperature** shows a clear progression from cold winter months to warmer summer periods, with **January and February** averaging around **0°C to 3.6°C**, while **July and August** peak at **17.24°C and 18.06°C**, respectively. **Precipitation levels** are relatively consistent throughout the year, with slightly higher values in **March (5.34 mm)** and **May (5.94 mm)**, potentially coinciding with spring rainfall. The summer months experience lower precipitation, particularly in **August (2.64 mm)**.
+
+**Sunshine duration** is notably higher during the summer, peaking in **July (7.11 hours)** and **August (7.99 hours)**, while the winter months have shorter sunshine durations, with **January (2.59 hours)** and **December (2.36 hours)** receiving the least sunlight. **Snow depth** is highest during the winter, with **March (48.33 cm)** and **January (40.21 cm)** showing significant accumulation, gradually decreasing as the year progresses.
+
+It is important to note that the data in the table reflects an **aggregation of multiple weather stations**, which provides a broad overview of general trends but can result in **less precise data for specific locations or microclimates**. This aggregation may cause minor variations in exact values, particularly for localized weather events, but it remains suitable for capturing **general patterns that could influence public transport**.
+
+These metrics give an overview of **seasonal weather patterns** and highlight specific periods where **extreme conditions**, such as high snow depth or low temperatures, could potentially affect train operations. This analysis forms the basis for assessing how these **weather variables correlate with train delays** and identifying **risk periods that require closer monitoring**.
+
+
+```{r Overview of Weather, echo=FALSE, message = FALSE, include=TRUE}
+
+# Step 2: Calculate average weather values by month
+monthly_weather_summary <- d.combined %>%
+  group_by(month) %>%
+  summarise(
+    avg_temperature = mean(Lufttemperatur, na.rm = TRUE),
+    avg_precipitation = mean(Niederschlag, na.rm = TRUE),
+    avg_sunshine = mean(Sonnenscheindauer, na.rm = TRUE)/60,
+    avg_snow_depth = mean(Gesamtschneehöhe, na.rm = TRUE)
+  ) %>%
+  arrange(month)
+
+# Step 3: Create the table using `gt`
+monthly_weather_summary %>%
+  gt() %>%
+  tab_header(
+    title = "Monthly Average Weather Conditions",
+    subtitle = "Temperature, Precipitation, Sunshine, and Snow Depth"
+  ) %>%
+  fmt_number(
+    columns = c(avg_temperature, avg_precipitation, avg_sunshine, avg_snow_depth),
+    decimals = 2
+  ) %>%
+  cols_label(
+    month = "Month",
+    avg_temperature = "Avg Temperature (°C)",
+    avg_precipitation = "Avg Precipitation (mm)",
+    avg_sunshine = "Avg Sunshine Duration (h)",
+    avg_snow_depth = "Avg Snow Depth (cm)"
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_column_labels(everything())
+  ) %>%
+  tab_options(
+    table.font.size = 12,
+    column_labels.font.size = 13,
+    heading.title.font.size = 16,
+    heading.subtitle.font.size = 12
+  )
+
+```
+
+```{r}
+library(dplyr)
+library(lubridate)
+
+# Step 1: Extract the correct month and ensure proper date handling
+d.combined_monthly <- d.combined %>%
+  mutate(
+    BETRIEBSTAG = as.Date(BETRIEBSTAG, format = "%d.%m.%Y"),  # Convert to proper date format
+    month = factor(month(BETRIEBSTAG, label = TRUE, abbr = TRUE), levels = month.abb)  # Create month column
+  ) %>%
+  group_by(month) %>%
+  summarise(
+    avg_temp_max = mean(Lufttemperatur..max., na.rm = TRUE),
+    avg_temp_min = mean(Lufttemperatur..min., na.rm = TRUE),
+    avg_precipitation = mean(Niederschlag, na.rm = TRUE),
+    avg_sunshine = mean(Sonnenscheindauer, na.rm = TRUE),
+    avg_snow_depth = mean(Gesamtschneehöhe, na.rm = TRUE),
+    first_date = min(BETRIEBSTAG, na.rm = TRUE)  # Earliest date in each month as a reference
+  )
+
+# Step 2: View the new dataset
+print(d.combined_monthly)
+```
+
+
+To visualize the potential discrepancies introduced by averaging data from multiple sources, we compared the our own averaged dataset **own temperature data** (solid lines) with <a href ="https://weatherspark.com/countries/CH">**average online temperature data from Zürich**</a> (dashed lines). The line graph highlights differences in both **high temperatures (red vs. green)** and **low temperatures (blue vs. green)** across the year. While general trends align, deviations in specific months can be observed. For example, during the **summer months (June to August)**, the **own maximum temperature** (red line) is consistently lower than the **Zürich maximum temperature** (green dashed line), indicating that the **local measurements may underreport warmer conditions compared to online data**. Similarly, during the **winter months (December to February)**, the **local minimum temperatures** (blue line) are generally lower than the **Zürich minimum temperatures** (green dashed line), implying **severe cold extremes locally** than what is reflected in the online data.
+
+These differences highlight the **limitations of relying solely on the own averaged weather data set** for precise weather insights. Similar discrepancies are expected for other weather measures like **precipitation, sunshine, and snow depth**, indicating that these values should be interpreted with caution when used to analyze potential impacts on public transport performance. Careful consideration of these variations is important for **targeting risk periods and understanding localized transport disruptions.**
+
+
+```{r Avg Temp Owndata vs. Online Data, echo=FALSE, message = FALSE, include=TRUE}
+library(ggplot2)
+library(dplyr)
+
+# Step 1: Create the data frame for Zürich online temperatures
+zurich_online <- data.frame(
+  month = factor(month.abb, levels = month.abb),
+  high_temp = c(3, 5, 10, 14, 19, 22, 24, 24, 19, 14, 8, 4),
+  low_temp = c(-2, -2, 1, 4, 8, 12, 14, 13, 10, 6, 2, -1)
+)
+
+# Step 2: Create the combined plot
+ggplot() +
+  # Ribbon for local average min/max temperatures
+  geom_ribbon(data = d.combined_monthly, aes(x = month, ymin = avg_temp_min, ymax = avg_temp_max), 
+              fill = "lightblue", alpha = 0.4) +
+  # Local min and max temperature lines
+  geom_line(data = d.combined_monthly, aes(x = month, y = avg_temp_max, color = "Own Max Temp", group = 1), size = 1.2) +
+  geom_line(data = d.combined_monthly, aes(x = month, y = avg_temp_min, color = "Own Min Temp", group = 1), size = 1.2) +
+  # Online Zürich temperature lines
+  geom_line(data = zurich_online, aes(x = month, y = high_temp, color = "Zürich Max Temp", group = 1), size = 1.2, linetype = "dashed") +
+  geom_line(data = zurich_online, aes(x = month, y = low_temp, color = "Zürich Min Temp", group = 1), size = 1.2, linetype = "dashed") +
+  
+  # Custom color legend
+  scale_color_manual(values = c(
+    "Own Max Temp" = "red",
+    "Own Min Temp" = "blue",
+    "Zürich Max Temp" = "darkseagreen",
+    "Zürich Min Temp" = "darkseagreen"
+  )) +
+  
+  # Labels and title
+  labs(
+    title = "Temperature Comparison",
+    x = "Month",
+    y = "Temperature (°C)",
+    color = "Legend"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right"
+  )
+
+```
+
+### **Aggregating Daily Delays to Identify Weather Impacts**
+
+To effectively analyze the influence of weather on train delays, it is essential to aggregate individual delay records into a **daily metric**. While the **weather data** is already structured on a **daily basis**, the **transport delay data** is recorded for each incoming train, making direct comparisons difficult. Therefore, the delay times must be **aggregated by day**, which is achieved by calculating the **average delay per day**. This aggregation provides a **summary measure** that reflects the **overall severity of delays** for a given day and allows for a **more direct correlation with daily weather conditions**.
+
+By grouping delays by their respective dates and computing the **mean delay duration**, we create an aggregated metric (**`delay.agg.day`**) that captures **day-to-day variability**. This daily aggregation not only reduces the complexity of the dataset but also highlights **potential spikes in delays during extreme weather events**. The resulting dataset can then be used to **assess correlations with key weather variables**, such as **temperature, precipitation, and snow depth**, enabling a deeper understanding of how weather contributes to **transport disruptions**.
 
 
 ```{r Calculating average per day, include=TRUE, echo=TRUE}
@@ -815,9 +956,9 @@ d.combined <- add_aggregated_delay(d.combined)
 
 ```
 
-Plotting the delay as a time series reveals two periods where the average temperature falls below 0°C (highlighted in Blue).
+With the **daily delays now aggregated and ready for analysis**, we can visualize how delay patterns fluctuate throughout the year and correlate them with changing weather conditions. Plotting the **average daily delay** alongside **daily temperature trends** highlights **key periods of interest** where extreme weather may have had a significant impact.
 
-A sharp increase in delays occurs in November, but not in January. The initial drop below freezing in November probably causes failures due to undetected issues in switch heating systems. By January, the railway operator (SBB) is likely better prepared, as the prolonged winter has already exposed and resolved most defects.
+The time series plot reveals **two periods** where the **average temperature falls below 0°C** (highlighted in blue). A **sharp increase in delays occurs in November**, but **not in January**. The initial drop below freezing in November likely causes **failures in switch heating systems or other infrastructure** due to **undetected or unaddressed issues**. By January, the **railway operator (SBB)** is likely better prepared, as the **prolonged winter exposure has already exposed and resolved most defects**. This contrast highlights the **importance of early detection and preventive maintenance** before the onset of severe winter conditions.
 
 
 ```{r Delays vs Temperature, include=TRUE}
@@ -863,7 +1004,12 @@ for (coldmonth in c("October","November", "December", "January", "February")){
 }
 
 ```
-A closer look at November suggests that the initial temperature drop led to the sharp increase in delays. However, daily aggregated delay data lacks detail. For a clearer analysis, weather data should be available at an hourly level to better capture its impact on delays. With such limited data, producing a reliable weather model is not feasible, but a qualitative assessment was possible. SBB also confirms that they have the highest delays in November. For more Information follow this link [here](https://news.sbb.ch/medien/dossiers/dossier/122215/puenktlichkeit#:~:text=Im%20Monaten%20Oktober%20und%20November,wenn%20die%20Gleise%20feucht%20sind).
+A closer look at **November** suggests that the **initial temperature drop** led to the **sharp increase in delays**. As shown in the plot, delays begin to spike shortly after the temperature drops below freezing. However, the **daily aggregated delay data lacks sufficient detail** to capture the immediate impact of sudden weather changes. For a **more precise analysis**, weather data should ideally be available at an **hourly level**, allowing for the correlation of specific weather events—such as freezing temperatures—with individual delay incidents.  
+
+Given the limitations of the current dataset, producing a **reliable quantitative weather model** is not feasible. Instead, this analysis offers a **qualitative assessment** that highlights key risk periods. The **railway operator (SBB)** also confirms that **November typically experiences the highest delays**, as switch failures and track-related issues are more frequent when tracks are **wet or frozen**. For further information, refer to the official SBB report available [here](https://news.sbb.ch/medien/dossiers/dossier/122215/puenktlichkeit#:~:text=Im%20Monaten%20Oktober%20und%20November,wenn%20die%20Gleise%20feucht%20sind).  
+
+This observation highlights the **importance of aligning shift schedules and production planning** with periods of heightened delay risks. Managers could consider **implementing flexible shift start times or proactive communication** to handle delayed workers during **late fall and early winter**. Furthermore, collaboration with the **railway operator (SBB)** to receive real-time updates on weather-induced delays could help **minimize disruptions to shift production** by adjusting staffing and resource allocation accordingly.
+
 
 ```{r Only look at November, include=TRUE}
 
