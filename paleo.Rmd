@@ -1131,6 +1131,11 @@ To further investigate the reliability of our conclusions, we compared the **sam
 
 The smaller sample size of extreme weather days can be attributed to the **rarity of severe weather events**, such as days with heavy rainfall or significant snowfall. As a result, while we observe minor differences in delay patterns and some extreme outliers, the **limited data means these differences should be interpreted with caution**. More data on extreme weather conditions would be needed to **draw stronger, more reliable conclusions** about its impact on delays.
 
+| condition | count | percentage [%] |
+|:----------------------:|:----------------------:|:----------------------:|
+| extreme | 2009 | 2.34 |
+| normal | 83737 | 97.7 | 
+
 ```{r comparison of samples sizes, include=TRUE}
 library(dplyr)
 library(ggplot2)
@@ -1140,9 +1145,6 @@ sample_sizes <- d.combined %>%
   group_by(extreme_weather) %>%
   summarise(count = n()) %>%
   mutate(percentage = (count / sum(count)) * 100)
-
-# Display sample size summary as a table
-print(sample_sizes)
 
 # Bar chart to visualize sample sizes
 ggplot(sample_sizes, aes(x = extreme_weather, y = count, fill = extreme_weather)) +
@@ -1154,6 +1156,8 @@ ggplot(sample_sizes, aes(x = extreme_weather, y = count, fill = extreme_weather)
 
 ```
 
+**Scatterplot with Jitter and Regression Line**
+To efficiently explore the potential impact of weather on train delays, we analyzed the relationships between delay times and various weather variables using a correlation matrix. This approach offers a comprehensive view of how different factors such as temperature, precipitation, and snow depth correlate with delays, providing insights without the need to examine individual scatterplots for each variable.
 
 
 ```{r correlation matrix, include=TRUE}
@@ -1173,6 +1177,111 @@ ggcorrplot(cor_matrix, lab = TRUE, lab_size = 3)
 
 ```
 
+The correlation heatmap illustrates the relationships between various weather variables and train delays (`delay.calc.min`). The color scale ranges from dark blue, representing negative correlations, to dark red, indicating positive correlations. A key observation from this chart is that the correlation between train delays and most weather variables is generally weak, with values close to zero. For example, precipitation (`Niederschlag`) shows a slight negative correlation with delays (~-0.07), reinforcing previous findings that general rainfall has a minimal impact on train delays. Similarly, snow depth (`Gesamtschneehöhe`) exhibits little correlation with delays, suggesting that accumulated snow on its own is not a major driver of consistent delays.
+
+Temperature-related variables (`Lufttemperatur`, `Lufttemperatur.max`, `Lufttemperatur.min`) exhibit strong positive correlations among themselves, which is expected as daily maximum, minimum, and average temperatures tend to move together. However, their correlation with train delays remains very low, indicating that variations in temperature are unlikely to be a significant factor contributing to delays under normal conditions. Additionally, sunshine duration (`Sonnenscheindauer`) shows a strong negative correlation with snow depth, as sunny days typically lead to snowmelt and lower snow accumulation.
+
+Overall, the heatmap confirms that weather conditions alone do not explain much of the variability in train delays, as most correlations are weak. This suggests that while extreme weather events, such as heavy snowfall or intense precipitation, may cause occasional severe disruptions, general weather variability has a limited impact on delay patterns. To gain deeper insights into the causes of significant delays, a more detailed investigation of specific events or non-linear interactions may be necessary.
+
+```{r Delay in relation to air temperature repeat, include=TRUE, message=FALSE}
+ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
+  geom_jitter(color = "blue", width = 0.2, height = 0.2, alpha = 0.6) + 
+  geom_smooth(method = "lm", color = "orange", se = FALSE) + 
+  labs(title = "Scatter Plot with Jitter and Regression Line",
+       x = "Lufttemperatur",
+       y = "Delay (min)") +
+  theme_minimal()
+```
+
+Another aspect of our investigation focused on the relationship between delays and **rainy conditions at freezing temperatures**. From the **Scatterplot with Jitter and Regression Line**, we observed a potential pattern of increased delays around **-3°C**, which led us to question whether this was linked to **rain or snowfall** during that temperature range.
+
+To test this, we analyzed rainy days, defined as days with **more than 5 mm of precipitation**, and split them into two categories: days when the temperature was between **-1°C and -5°C** and days with temperatures outside of this range. We then calculated the probability of delays exceeding **5 minutes** for both groups.
+```{r, echo=TRUE}
+# Set a delay threshold (e.g., delays > 5 min)
+delay_threshold <- 5  
+
+# Filter only rainy days (precipitation > 5 mm)
+rainy_days <- d.combined %>%
+  filter(Niederschlag > 5)
+```
+
+```{r}
+# Create a temperature category
+rainy_days <- rainy_days %>%
+  mutate(temp_category = case_when(
+    Lufttemperatur >= -5 & Lufttemperatur <= -1 ~ "Temp -1 to -5°C",
+    TRUE ~ "Other Temps"
+  ))
+
+# Calculate probability of delays above the threshold in both categories
+probability_of_delay <- rainy_days %>%
+  mutate(delay_occurs = ifelse(delay.calc.min > delay_threshold, 1, 0)) %>%
+  group_by(temp_category) %>%
+  summarise(
+    total_days = n(),
+    days_with_delay = sum(delay_occurs),
+    probability_of_delay = mean(delay_occurs)
+  )
+
+# Display results
+print(probability_of_delay)
+```
+
+| category | total days [count] | days with delay [count] | probability of delay [%] |
+|:----------------------:|:----------------------:|:----------------------:|:----------------------:|
+| temp -1 to -5°C | 245 | 89 | 36.3% |
+| other temps | 22589 | 755 | 3.3% |
+
+The results reveal a significant difference. On rainy days within the temperature range of **-1°C to -5°C**, **36.3%** of cases resulted in delays exceeding 5 minutes. In contrast, on rainy days outside this temperature range, the probability of delays was only **3.3%**. This stark difference suggests that **rainfall combined with freezing temperatures dramatically increases the likelihood of delays**. The most plausible explanation is the formation of **freezing rain, icy tracks, or switch failures**—factors that are especially problematic in this temperature range.
+
+These findings emphasize that **specific weather events, particularly rainfall near freezing temperatures, have a much stronger impact on delays than general precipitation alone**. To minimize disruptions, production managers could benefit from **real-time weather monitoring systems that flag freezing rain events** and trigger **contingency plans such as buffer times or flexible shift adjustments.**
+
+```{r}
+
+# Step 1: Fit a linear model
+lm_model <- lm(delay.calc.s ~ Lufttemperatur, data = rainy_days)
+
+# Step 3: Plot the relationship
+ggplot(rainy_days, aes(x = Lufttemperatur, y = delay.calc.s)) +
+  geom_jitter(width = 0.5, height = 0.05, alpha = 0.3, color = "blue") +
+  geom_smooth(method = "lm", color = "orange", se = TRUE) +
+  labs(title = "Probability of Delays vs. Temperature on Rainy Days",
+       x = "Temperature (°C)", y = "Probability of Delay") +
+  theme_minimal() +
+  scale_y_sqrt()
+
+```
+
+Building on the previous finding that **rainfall near freezing temperatures significantly increases the likelihood of delays**, we further examined the relationship between **temperature and delay durations on rainy days** using a comparison of delays across different temperature ranges. By categorizing the data into **below 0°C, 0°C to 10°C, and above 10°C**, we aimed to assess whether delays are **concentrated at colder temperatures** or **uniform across all ranges**.
+
+```{r, include=TRUE}
+
+# Categorize temperature ranges
+rainy_days <- rainy_days %>%
+  mutate(temp_range = case_when(
+    Lufttemperatur < 0 ~ "Below 0°C",
+    Lufttemperatur >= 0 & Lufttemperatur <= 10 ~ "0°C to 10°C",
+    TRUE ~ "Above 10°C"
+  ))
+
+# Create a boxplot
+ggplot(rainy_days, aes(x = temp_range, y = delay.calc.min, fill = temp_range)) +
+  geom_boxplot(outlier.color = "red", outlier.size = 1.5, alpha = 0.7) +
+  labs(title = "Delays Across Temperature Ranges on Rainy Days",
+       x = "Temperature Range", y = "Delay Duration (min)") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Below 0°C" = "skyblue", "0°C to 10°C" = "orange", "Above 10°C" = "green")) +
+  scale_y_sqrt()
+
+```
+
+The boxplot reveals a **clear difference in delay distributions** across temperature ranges. Delays **below 0°C** show a **wider interquartile range (box) and longer upper tail**, indicating greater variability and more frequent extreme delays. In contrast, the distributions for **0°C to 10°C** and **above 10°C** are **tighter and more centered around low delays**, with far fewer extreme values. This suggests that **rainfall during freezing or sub-freezing conditions** leads to a higher risk of severe delays, possibly due to **freezing rain, icy tracks, or equipment failures.**
+
+The absence of a **strong linear trend between temperature and delays** in earlier analyses is consistent with this observation, as the relationship is **highly non-linear and event-driven.** Most delays occur within a manageable range at warmer temperatures, but **freezing conditions create isolated yet severe disruptions**. These events are often driven by **temporary or localized issues**, such as switch failures or ice accumulation.
+
+This analysis highlights the importance of **event-based mitigation strategies** rather than broad, temperature-based adjustments. Production schedules do not require changes across a wide range of temperatures, but **real-time weather monitoring and rapid response systems** to address freezing conditions can help **minimize the impact of severe delays**. Collaboration with **railway operators to monitor freezing rain events** and ensure proactive maintenance during critical periods will be crucial for optimizing shift production and reducing disruptions.
+
+
 
 ## Vacation Peaks in Switzerland
 
@@ -1189,6 +1298,8 @@ only_january <- d.combined %>%
 plot(only_january$delay.calc.min~only_january$datetime_ankunft)
 
 ```
+
+
 
 # Use of Generative AI
 
