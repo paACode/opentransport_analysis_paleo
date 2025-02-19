@@ -848,6 +848,129 @@ On the other hand, **weekend days—Saturday and Sunday—exhibit relatively sta
 
 In conclusion, this final plot demonstrates that **weekday-specific planning is essential**, particularly on **high-risk days like Tuesday and Thursday**. By contrast, the stability of weekend delays provides opportunities for **resource optimization and maintenance planning**. Together, these insights contribute to a **holistic understanding of how delays affect production** at MadeUpCompany AG and support the development of **effective, data-driven strategies** for mitigating transport-related disruptions.
 
+# Chapter of Choice - R Shiny App
+
+In the previous chapter, plots illustrated the number of delays on different days.To enable MadeUpCompany AG to explore the data independently, an interactive R Shiny app was developed. This allows them to uncover patterns that may have gone unnoticed.
+
+The plot below showcases all the data available for exploration . However, due to the high density of information, it is difficult to discern any clear patterns. With the interactive capabilities of the Shiny app, users can now explore the data dynamically and uncover meaningful insights more effectively.
+
+```{r ShinyDataPrep, include = TRUE, echo=FALSE, message = FALSE, include=TRUE}
+
+#Prepare Data
+d.shiny.app <- d.combined %>%
+  group_by(weekday,timeframe, delay.category) %>%
+  summarise(delay_count = n(), .groups = "drop") %>%
+  mutate(timeframe = factor(
+    timeframe,
+    levels = paste0(sprintf("%02d", 0:23), ":00 - ", sprintf("%02d", 1:24 %% 24), ":00")
+  )) %>%
+  arrange(timeframe)
+
+#Overview Plot
+ggplot(d.shiny.app, 
+       aes(x = timeframe, y = delay_count, 
+           color = weekday, linetype =delay.category,
+           group = interaction(weekday,delay.category))) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Overview Train Count by Weekday and Delay Category",
+    x = "Time Window",
+    y = "Train Count",
+    color = "Weekday",
+    linetype = "Delay Category"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r Shiny, echo=FALSE, message = FALSE, include=FALSE}
+
+## Load packages
+library(shiny)
+library(ggplot2)
+
+
+
+ui <- fluidPage(
+  h3("User Input"),
+    ## Input: what variable to focus on the x-axis
+    selectInput(inputId = "inout.weekday", 
+                label = "Choose Weekday:",
+                choices = unique(d.shiny.app$weekday),
+                selected = "Monday"),
+    
+    ## Input: what variable to focus on the y-axis
+    selectInput(inputId = "input.delay-category", 
+                label = "Choose Delay Category:",
+                choices = unique(d.combined$delay.category),
+                selected = "on time"),
+    
+    ## Example of an action button
+    actionButton(inputId = "user.update", 
+                 label = "Update Plot"),
+  #Final Plot
+  h3("Plot"),
+      plotOutput(outputId = "plot.output"),
+  
+)
+
+
+# Server ------------------------------------------------------------------
+
+
+server <- function(input, output, session) {
+  
+  ## The number of rows gets only updated after clicking on the button since we
+  ## use eventReactive(). I.e. even if "input$user.start" is included, the
+  ## reactive expression only depends on the reactive elements defined in
+  ## "eventExpr."
+  #TODO: Adjust below
+  dataset <- eventReactive(
+    eventExpr = c(input$user.start),
+    valueExpr = {
+      
+      ## shuffle rows
+      set.seed(123)
+      random.order <- sample(x = nrow(iris),
+                             replace = FALSE,
+                             size = nrow(iris))
+      df <- iris[random.order, ]
+      
+      ## subselect rows of dataset
+      df <- df[1:input$user.number, ]
+
+      return(df)
+    })
+  
+
+  #TODO: Adjust below
+  output$plot.output <- renderPlot({
+    
+    ## A simple base plot with the selected variables
+    ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+      geom_point() +
+      labs(title = "Sepal Length vs Sepal Width", x = "Sepal Length", y = "Sepal Width") +
+      theme_minimal()
+    
+  })
+  
+  
+  
+}
+
+
+# Run Shiny App ------------------------------------------------------------
+
+shinyApp(ui, server)
+
+
+
+
+```
+
+
 ## Assessing the Impact of Weather on Train Delays
 
 Weather conditions are often considered a significant factor influencing public transport reliability, which in turn can impact worker punctuality and overall production efficiency. To investigate the relationship between weather and train delays, this section analyzes key meteorological variables, including temperature, sun hours, precipitation, and snow height. By understanding general patterns in these variables, we aim to establish a foundation for assessing their potential contribution to train delays.
