@@ -896,13 +896,13 @@ library(ggplot2)
 ui <- fluidPage(
   h3("User Input"),
     ## Input: what variable to focus on the x-axis
-    selectInput(inputId = "inout.weekday", 
+    checkboxGroupInput(inputId = "input.weekday", 
                 label = "Choose Weekday:",
                 choices = unique(d.shiny.app$weekday),
-                selected = "Monday"),
+                selected = unique(d.shiny.app$weekday)),
     
     ## Input: what variable to focus on the y-axis
-    selectInput(inputId = "input.delay-category", 
+    checkboxGroupInput(inputId = "input.delaycategory", 
                 label = "Choose Delay Category:",
                 choices = unique(d.combined$delay.category),
                 selected = "on time"),
@@ -921,26 +921,15 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
-  
-  ## The number of rows gets only updated after clicking on the button since we
-  ## use eventReactive(). I.e. even if "input$user.start" is included, the
-  ## reactive expression only depends on the reactive elements defined in
-  ## "eventExpr."
   #TODO: Adjust below
-  dataset <- eventReactive(
-    eventExpr = c(input$user.start),
+  
+    selected.data <- eventReactive(
+    eventExpr = c(input$input.weekday, input$input.delaycategory),
     valueExpr = {
+      df <- d.shiny.app %>% 
+        filter(weekday %in% c(input$input.weekday)) %>% 
+        filter(delay.category %in% c(input$input.delaycategory))
       
-      ## shuffle rows
-      set.seed(123)
-      random.order <- sample(x = nrow(iris),
-                             replace = FALSE,
-                             size = nrow(iris))
-      df <- iris[random.order, ]
-      
-      ## subselect rows of dataset
-      df <- df[1:input$user.number, ]
-
       return(df)
     })
   
@@ -948,11 +937,23 @@ server <- function(input, output, session) {
   #TODO: Adjust below
   output$plot.output <- renderPlot({
     
-    ## A simple base plot with the selected variables
-    ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
-      geom_point() +
-      labs(title = "Sepal Length vs Sepal Width", x = "Sepal Length", y = "Sepal Width") +
-      theme_minimal()
+    ggplot(selected.data(), 
+           aes(x = timeframe, y = delay_count, 
+               color = weekday, linetype =delay.category,
+               group = interaction(weekday,delay.category))) +
+      geom_line(size = 1) +
+      geom_point(size = 2) +
+      labs(
+        title = "Overview Train Count by Weekday and Delay Category",
+        x = "Time Window",
+        y = "Train Count",
+        color = "Weekday",
+        linetype = "Delay Category"
+      ) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    
     
   })
   
