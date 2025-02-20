@@ -460,7 +460,7 @@ ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
 
 Building on the seasonal analysis, it is essential to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The "Monthly Overview of Train Delays" was chosen to illustrate how delays fluctuate over time, providing insight into critical monthly trends and complementing the broader seasonal findings.
 
-For most months, the average delay time remains relatively stable between 80 and 110 seconds. However, a spike in November is visible.
+For most months, the average delay time remains relatively stable between 80 and 110 seconds. However, a spike in November is visible. strengthens the hypothesis that higher delays are associated with early-season temperature drops. This pattern suggests potential failures in switch heating systems, leading to freezing-related malfunctions.
 
 ```{=html}
 <!--Following the seasonal analysis, it is crucial to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The “Monthly Overview of Train Delays” was specifically chosen to illustrate how delays fluctuate over time, helping to highlight critical monthly trends and complement the broader seasonal analysis.
