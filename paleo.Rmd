@@ -14,9 +14,15 @@ output:
 ---
 
 ```{r, echo=FALSE , include=FALSE}
-## we remove the printing of the hashes in front of all results
-library(knitr)
-library(details)
+## Document related Settings and Libs
+require(knitr) 
+require(details)    # allows collapsible code blocks
+require(gt)         # formats tables nicely
+
+## general language settings
+Sys.setenv(LANG = "en")
+
+## Default Settings for R-Chunks
 opts_chunk$set(echo = FALSE ,
                include = FALSE,
                comment = NA,
@@ -87,13 +93,17 @@ sed -i "1i BETRIEBSTAG;FAHRT_BEZEICHNER;BETREIBER_ID;BETREIBER_ABK;BETREIBER_NAM
 The size reduction of the dataset described in Chapter <a href="#reduceDataset">Reduce Dataset</a> enabled the data to be imported into R. After importing the data in R, the preprocessing steps of the shell scripts could easily be validated with a simple unit test.
 
 ```{r Import}
-#import libraries
-library(testthat)
-library(dplyr)
-library(ggplot2)
-#general settings
-Sys.setenv(LANG = "en")
-#
+## import required libraries
+require(testthat)   # for unit test
+require(dplyr)      # for data wrangling
+require(ggplot2)    # for plotting
+require(tidyr)      # For reshaping data
+require(lubridate)  # for easier handling of date and times
+require(patchwork)  # combining different ggplots into a single layout
+require(ggcorrplot) # required for correlation matrix
+require(shiny)      # allows interactive app
+
+## import raw data
 d.train.raw <-  read.csv(file = "raw_transport_2024.csv", sep = ";")
 ```
 
@@ -111,12 +121,12 @@ Upon reviewing the dataset, several issues were identified that need to be addre
 -   Arrival times that are predicted rather than measured should also be removed, as the focus is exclusively on real data.
 
 ```{r Clean Up}
-# Columns needed: 
-# More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
-# "BETRIEBSTAG" : categorizing weekday/month/season, merging weather 
-# "LINIEN_TEXT" :describing the train category IC, S1 , IR16
-# "ANKUNFTSZEIT" : calculation of delay
-# "AN_PROGNOSE" : calculation of delay
+## Columns needed : 
+## More Information: https://opentransportdata.swiss/de/cookbook/actual-data/
+## "BETRIEBSTAG"   : categorizing weekday/month/season, merging weather 
+## "LINIEN_TEXT"   : describing the train category IC, S1 , IR16
+## "ANKUNFTSZEIT"  : calculation of delay
+## "AN_PROGNOSE"   : calculation of delay
 
 col.needed <-  c("BETRIEBSTAG",
                  "LINIEN_TEXT",
@@ -126,11 +136,11 @@ col.needed <-  c("BETRIEBSTAG",
 ```
 
 ```{r Data removal, include= TRUE, echo = TRUE}
-#Filter 
+## Filter the raw dataset
 d.train.filtered <-  d.train.raw %>%
-  filter(ANKUNFTSZEIT != "") %>% #Remove trains starting from lucerne
-  filter(AN_PROGNOSE != "") %>% #Remove trains where delay calc. not possible
-  filter(AN_PROGNOSE_STATUS == "REAL") %>%  #Only consider REAL arrival times
+  filter(ANKUNFTSZEIT != "") %>%  # Remove trains starting from lucerne
+  filter(AN_PROGNOSE != "") %>%   # Remove trains where delay calc. not possible
+  filter(AN_PROGNOSE_STATUS == "REAL") %>% # Only consider REAL arrival times
   select(all_of(col.needed)) 
 
 ```
@@ -146,11 +156,8 @@ calc.delay.s <- function(exp.time,
   test_that("Correct Function inputs?", {
     expect_equal(length(exp.time), length(actual.time))
     expect_equal(
-      class(exp.time.format),
-      class(actual.time.format),
-      class(exp.time),
-      class(actual.time),
-      "character"
+      class(exp.time.format),class(actual.time.format),
+      class(exp.time),class(actual.time),"character"
     )
   })
   
@@ -165,58 +172,43 @@ calc.delay.s <- function(exp.time,
 The final step involved adding additional categorical data to simplify the analysis. This included variables such as season, month, and weekday, which were converted into ordered factors.
 
 ```{r Complement dataset}
-#Create dataset with complimentary information
-d.train.compl <-  d.train.filtered
-
-#Add delay in seconds
+## Create dataset with complimentary information 
+d.train.compl <-  d.train.filtered # First copy filtered dataset 
+## Add delay in seconds
 d.train.compl$delay.calc.s <- calc.delay.s(
   exp.time = d.train.filtered$ANKUNFTSZEIT,
-  exp.time.format = "%d.%m.%Y %H:%M",# SBB provides min accuracy
+  exp.time.format = "%d.%m.%Y %H:%M",# SBB provides only minute accuracy
   actual.time = d.train.filtered$AN_PROGNOSE,
   actual.time.format = "%d.%m.%Y %H:%M:%S" # Meas. accuracy is in seconds
 )
-#Add delay in minutes
+## Add delay in minutes
 d.train.compl$delay.calc.min <- round(d.train.compl$delay.calc.s/60, 3)
 
-#Add delay category
+## Add delay category
 d.train.compl$delay.category <- cut(
   x = d.train.compl$delay.calc.s,
   breaks = c(-Inf, 0, 5, 15, 30, Inf) * 60,# because it is in seconds
   labels = c("on time", "<5 min", "5-15 min", "15-30 min", ">30 min")
 )
 
-#Add Weekdays
-weekday.order <- c("Monday",
-                   "Tuesday",
-                   "Wednesday",
-                   "Thursday",
-                   "Friday",
-                   "Saturday",
+## Add Weekdays
+weekday.order <- c("Monday","Tuesday","Wednesday",
+                   "Thursday","Friday","Saturday",
                    "Sunday") 
 weekday <- weekdays(as.Date(d.train.compl$BETRIEBSTAG, format = "%d.%m.%Y"))
 d.train.compl$weekday <- factor(weekday, levels = weekday.order, ordered = TRUE)
 
-#Add months
+## Add months
 month.order <- c(
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December"
+  "January","February","March","April","May","June",
+  "July","August","September","October","November", "December"
 )
 month <- months(as.Date(d.train.compl$BETRIEBSTAG, format = "%d.%m.%Y"))
 d.train.compl$month <- factor(month, levels = month.order, ordered = TRUE)
 ```
 
 ```{r Example how season was added, include=TRUE, echo=TRUE}
-#Add season
+## Add season
 season.order <- c(
   "Spring",
   "Summer",
@@ -319,9 +311,7 @@ print(f"The merged file with updated column names has been saved to: {output_fil
 In addition to merging and averaging the individual measurement values, the dataset's labels were also renamed for readability. For example, *tre200d0* was renamed to *Lufttemperatur (as shown below)*.
 
 ```{r echo=FALSE, include=TRUE, message=FALSE}
-## Display weather data
-library(dplyr)
-
+## Display weather data for documentation purposes
 d.weather %>%
   transmute(
     Datum = Datum,
@@ -362,7 +352,6 @@ Afterwards, to merge the data a left join method was chosen and carried out. The
 
 ```{r echo=TRUE, include=TRUE}
 ## Merge Weather Data into Train Dataset
-
 d.combined <- d.train.compl %>% 
   left_join(d.weather, by = c("BETRIEBSTAG" = "Datum"))
 
@@ -381,12 +370,14 @@ As a first step, a plot was created that provides an overview of SBB's overall p
 ```{r distribution of delays, include=TRUE}
 
 ggplot(data = d.train.compl, aes(x = delay.category)) +
-  geom_bar(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
-           fill = "skyblue", color = "black") +  # Customize the appearance
-  labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
+  geom_bar(aes(y = ..count.. / sum(..count..) * 100),# Convert counts to percentages
+           fill = "skyblue", color = "black") +# Customize the appearance
+  labs(y = "Count[%]", x = "Delay [mins]") +# Add axis labels
   ggtitle("Overview-Distribution of all arriving trains", subtitle = "Lucerne train station, 2024") +
-  theme_minimal() +  # Apply a minimal theme
-  geom_text(aes(y = ..count.. / sum(..count..) * 100, label = ..count..), stat = "count", vjust = -0.5, colour = "blue")  # Add count labels above bars
+  theme_minimal() +  
+  ## Add count labels above bars
+  geom_text( aes(y = ..count.. / sum(..count..) * 100, 
+        label = ..count..), stat = "count", vjust = -0.5, colour = "blue")  
 
 ```
 
@@ -400,12 +391,13 @@ subset.smaller5min <- d.train.compl  %>%
   filter(delay.category == "<5 min")
 
 ggplot(data =subset.smaller5min, aes(x = delay.calc.min)) +
-  geom_histogram(aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
-                 binwidth = 1, fill = "skyblue", color = "black", boundary = 0) +  # Customize the appearance
+  geom_histogram(
+    aes(y = ..count.. / sum(..count..) * 100),  # Convert counts to percentages
+    binwidth = 1, fill = "skyblue", color = "black", boundary = 0) +  
   scale_x_continuous(breaks = 1:5) +
   labs(y = "Count[%]", x = "Delay [mins]") +  # Add axis labels
   ggtitle("Closer Look at < 5min ", subtitle = "lucerne train station, 2024") +
-  theme_minimal()  # Apply a minimal theme
+  theme_minimal()  
 ```
 
 As a further step, the air temperature was plotted againt the delays. It appears that there is no clear, strong linear relationship between air temperature ("Lufttemperatur") and delays. The points are widely scattered, and the regression line appears mostly flat. Additionally, a dense clustering of points around zero on the y-axis indicates that a large number of observations have minimal or no delays, regardless of air temperature. Several noticeable outliers exceed 50-minute delays, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees, delays appear to be higher, suggesting further analysis, particularly regarding precipitation. Although jittering helps to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
@@ -413,7 +405,7 @@ As a further step, the air temperature was plotted againt the delays. It appears
 ```{r Delay in relation to air temperature, include=TRUE, message=FALSE}
 ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
   geom_jitter(color = "blue", width = 0.2, height = 0.2, alpha = 0.6) + 
-  geom_smooth(method = "lm", color = "orange", se = FALSE) + 
+  geom_smooth(method = "lm", color = "orange", se = FALSE) + # Fit Linear Model
   labs(title = "Scatter Plot with Jitter and Regression Line",
        x = "Lufttemperatur",
        y = "Delay (min)") +
@@ -431,9 +423,10 @@ To begin the analysis, it’s useful to explore the seasonal patterns of train d
 As an initial step, it makes sense to examine the seasonal patterns of train delays. Overall, the delays appear to be quite consistent across all four seasons. The summary statistics presented below reveal that, on average, delays remain steady throughout the year, with no significant fluctuations from one season to the next.
 
 ```{r Seaonsal analysis statistics, include=TRUE}
+## Only consider delayed trains 
 d.delayed_trains <- d.combined %>% 
-  filter(delay.category != "on time")
-
+  filter(delay.category != "on time") # Remove trains that are on time 
+## Crate a table with min, max, median, quantiles
 season.tbl <- d.delayed_trains %>%
   group_by(season) %>%
   summarise(
@@ -454,11 +447,11 @@ Further weather analysis in subsequent chapters will explore this aspect in more
 ```{r Season Boxplot, include = TRUE}
 ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
     geom_jitter(aes(color = season), width = 0.2, alpha = 0.5) +
+    # Outlier plotting does not make sense for jitter plot
     geom_boxplot(outlier.shape = NA) +  
-
-    scale_y_sqrt()
-
-
+    scale_y_sqrt() 
+    # Very Important! Sqrt Scale removes delays < 0 in plot, which would
+    # not make much sense in this plot
 ```
 
 ### Monthly Delay Analysis
@@ -473,20 +466,12 @@ For most months, the average delay time remains relatively stable between 80 and
 The average delay time remains relatively stable between **80 and 110 seconds** for most months, but a **significant spike in November** suggests potential disruptions, possibly due to **adverse weather conditions**, **increased travel demand**, or **network inefficiencies** during this period. Despite this increase in delay duration, November does not show a corresponding peak in the number of delayed trains, which remains **consistently high across the year** with minimal fluctuations from month to month. Furthermore, the percentage of delayed trains stays **persistently high at around 60%**, suggesting that delays are driven not only by seasonal changes but also by **underlying systemic issues** such as **scheduling inefficiencies** or **network congestion**. -->
 ```
 ```{r Overview Months Table, echo=FALSE, message = FALSE, include=FALSE}
-library(dplyr)
-library(gt)
-
-## Step 0: Prepare the table (same as before)
-## create subset with only delayed trains
-d.delayed_trains <- d.combined %>% 
-  filter(delay.category != "on time")
 
 ## count total trains per weekday
 total_trains_per_day <- d.combined %>%
   group_by(weekday) %>%
   summarise(total_trains = n())
 
-## Step 1: Prepare the table for months (similar to the weekday table)
 ## count total trains per month
 total_trains_per_month <- d.combined %>%
   group_by(month) %>%
@@ -530,8 +515,6 @@ overview_month_delay_table %>%
 
 ```{r Overview Months Delays, echo=FALSE, message = FALSE, include=TRUE}
 # Reshape the table for long format (needed for facetting)
-library(tidyr)
-
 long_delay_table <- overview_month_delay_table %>%
   pivot_longer(cols = c(delay_count, avg_delay_seconds, percentage_delayed_trains),
                names_to = "Metric", values_to = "Value")
@@ -573,8 +556,7 @@ Although high delays are observed in November, the **absolute average delay of a
 The summary table of train delays by weekday reveals significant differences in train performance across the week. Weekdays generally experience more frequent and longer delays compared to weekends, with **Tuesday** recording the highest number of delayed trains at **8'458** and a high delay percentage of **68.05%**. Similarly, **Thursday** exhibits a high delay percentage of **67.29%** and the longest average delay time of **113.31** seconds, indicating that these days face substantial operational challenges. In contrast, **Saturday** shows the lowest number of delayed trains (**6'572**) and the shortest average delay time (**79.83 seconds**), making it the most efficient day. The weekend, overall, has a lower percentage of delayed trains, with **Saturday (54.36%)** and **Sunday (57.61%)** performing significantly better than most weekdays. This pattern suggests that weekdays, particularly **Tuesday** and **Thursday**, experience higher train traffic and potential congestion, requiring further investigation into distributions of delay categories.
 
 ```{r Overview Weekdays Table, echo=FALSE, message = FALSE, include=TRUE}
-library(dplyr)
-library(gt)
+
 
 ## Step 1: Prepare the table (same as before)
 ## create subset with only delayed trains
@@ -649,9 +631,6 @@ Building on the weekday-level analysis, it is important to further investigate s
 The **line chart of the percentage of delayed trains** was chosen as it effectively highlights the **frequency of delayed trains** across different time windows, allowing us to identify key periods where delays are most common. However, this visualization does not capture the **severity of the delays**, which also requires further analysis to understand their impact on punctuality and overall operations.
 
 ```{r Delay per Time Window Line Chart, echo=FALSE, message=FALSE, include=TRUE}
-library(dplyr)
-library(lubridate)
-library(ggplot2)
 
 # Step 1: Convert ANKUNFTSZEIT to proper datetime format
 d.combined <- d.combined %>%
@@ -725,9 +704,7 @@ These observations highlight the need for **targeted interventions during the ea
 To further understand the nature of delays and their impact, it is important to investigate how delays vary in severity on average throughout the day. While previous analyses have focused on general patterns and extreme outliers, examining specific delay categories (5-15 min, 15-30 min, and \>30 min) can help identify critical time windows where even moderate or short delays may accumulate and disrupt operations. The following line graph provides insights into the total count of delays per category, highlighting periods of both high and low delay frequencies.
 
 ```{r AVG Count of Delayed Trains by Delay Category and Time Window Line Graph, echo=FALSE, message = FALSE, include=TRUE}
-library(dplyr)
-library(lubridate)
-library(ggplot2)
+
 
 # Step 1: Convert ANKUNFTSZEIT to proper datetime format
 d.combined <- d.combined %>%
@@ -886,11 +863,6 @@ ggplot(d.shiny.app,
 ```
 
 ```{r ShinyApp, echo=FALSE, message = FALSE, include=FALSE}
-
-## Load packages
-require(shiny)
-
-
 ui <- fluidPage(
   h3("User Input"),
   fluidRow(
@@ -1051,8 +1023,7 @@ monthly_weather_summary %>%
 ```
 
 ```{r}
-library(dplyr)
-library(lubridate)
+
 
 # Step 1: Extract the correct month and ensure proper date handling
 d.combined_monthly <- d.combined %>%
@@ -1079,8 +1050,7 @@ To visualize the potential discrepancies introduced by averaging data from multi
 These differences highlight the **limitations of relying solely on the own averaged weather data set** for precise weather insights. Similar discrepancies are expected for other weather measures like **precipitation, sunshine, and snow depth**, indicating that these values should be interpreted with caution when used to analyze potential impacts on public transport performance. Careful consideration of these variations is important for **targeting risk periods and understanding localized transport disruptions.**
 
 ```{r Avg Temp Owndata vs. Online Data, echo=FALSE, message = FALSE, include=TRUE}
-library(ggplot2)
-library(dplyr)
+
 
 # Step 1: Create the data frame for Zürich online temperatures
 zurich_online <- data.frame(
@@ -1154,7 +1124,6 @@ With the **daily delays now aggregated and ready for analysis**, we can visualiz
 The time series plot reveals **two periods** where the **average temperature falls below 0°C** (highlighted in blue). A **sharp increase in delays occurs in November**, but **not in January**. The initial drop below freezing in November likely causes **failures in switch heating systems or other infrastructure** due to **undetected or unaddressed issues**. By January, the **railway operator (SBB)** is likely better prepared, as the **prolonged winter exposure has already exposed and resolved most defects**. This contrast highlights the **importance of early detection and preventive maintenance** before the onset of severe winter conditions.
 
 ```{r Delays vs Temperature, include=TRUE}
-library(patchwork)
 
 plot_delay <- ggplot() +
   geom_line(data = d.combined, aes(x = BETRIEBSTAG, y = delay.agg.day))
@@ -1330,8 +1299,7 @@ The smaller sample size of extreme weather days can be attributed to the **rarit
 |  normal   | 83737 |      97.7      |
 
 ```{r comparison of samples sizes, include=TRUE}
-library(dplyr)
-library(ggplot2)
+
 
 # Summarize the number of delay records in each group
 sample_sizes <- d.combined %>%
@@ -1363,7 +1331,6 @@ cor_matrix <- cor(d.combined[, weather_vars], use = "complete.obs")
 
 
 # Visualize correlations
-library(ggcorrplot)
 ggcorrplot(cor_matrix, lab = TRUE, lab_size = 3)
 
 ```
