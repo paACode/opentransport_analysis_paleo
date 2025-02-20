@@ -1454,32 +1454,41 @@ In conclusion, while ChatGPT offers valuable assistance in coding, especially fo
 
 # Results
 
-This chapter repeats the key findings of the report.
+This chapter summarizes the key findings of the analysis.  
 
-Overall, SBB performs well at Lucerne train station, with approximately 95% of trains arriving on time or with a delay of no more than 5 minutes. These two delay categories are considered less critical and are unlikely to significantly impact MadeUpCompany AG's production.
 
-However, the remaining 5%—equivalent to 2,343 trains—pose a potential risk to MadeUpCompany AG's production, which explains why the data was further analyzed.
-
-A seasonal analysis revealed that, particularly in the fall, there is a significantly higher number of trains experiencing very high delays (\>30 minutes) compared to other seasons. This is particularly interesting, as one might initially expect winter to have more delays due to colder weather and snow.
+Overall, SBB performs well at Lucerne train station, with approximately **95% of trains arriving either on time or with a delay of no more than 5 minutes**. These categories are considered less critical and are unlikely to significantly disrupt production at MadeUpCompany AG. However, the remaining **5% of trains—equivalent to 2,343 annually—experience delays greater than 5 minutes**, posing a potential risk to worker punctuality and production schedules. While 5% may seem small in proportion, the absolute number of delayed trains remains significant, particularly during peak commuting times.
 
 ![](Key_Finding_Fall.png)
 
-A closer look at the data revealed the reasons behind this pattern. November typically experiences the highest delays, as switch failures and track-related issues become more frequent when tracks are wet or frozen. This is often the first time of the year that the railways face freezing conditions, leading to track-related problems such as defective heaters that need replacing. In winter (January), despite the cold, these issues are less prevalent because the faulty devices have already been detected and replaced. However, the next period without heater usage, during the summer, poses a risk, as the heaters are not in use and may become damaged.
+A seasonal analysis revealed that fall experiences a significantly higher number of long delays (>30 minutes) compared to other seasons. This is surprising, as one might expect winter to have more delays due to snow and ice. However, a closer look at the data identified November as the most delay-prone month, with a sharp increase in long delays. This pattern is likely due to **switch failures and track-related issues caused by wet or freezing conditions**. As temperatures drop for the first time in the season, defects in heating systems (such as defective switch heaters) become apparent, leading to infrastructure-related disruptions. By January, although the cold persists, previous failures have been detected and resolved, leading to fewer delays despite similar weather conditions. This pattern suggests that early-season freezing events require better preparedness, as November consistently experiences the most severe disruptions.
+
+
 
 ![](Key_Finding_November.png)
 
-Through a more detailed analysis, additional optimal time windows for time shifts were identified, which could help minimize delays caused by public transport for commuters. The white-highlighted areas in the plot represent time windows with generally low delay counts, offering ideal opportunities to reduce delays.
+A further analysis of delay frequency by time of day identified **optimal commuting windows** where delays are least likely to disrupt shift-based production. **Peak delays occur during midnight (00:00-02:00), early morning (07:00-11:00), and evening (17:00-21:00)**. In contrast, **off-peak periods (03:00-06:00, 12:00-16:00, and 21:00-23:00) show significantly fewer delays**, offering more reliable commuting options.
+
+For MadeUpCompany AG’s shifts at **06:00, 14:00, and 22:00**, the morning commute (05:00-05:30) carries **low risk**, the afternoon window (13:00-13:30) has **slightly higher delays**, and the **highest risk (65% delay rate) occurs during the 21:00-21:30 window**, affecting the night shift. Weekday trends show **Tuesdays and Thursdays experience the most frequent delays**, while weekends exhibit **more stable operations**.
+
+Short delays (5-15 minutes) dominate, but **longer delays (15-30 minutes and >30 minutes) are rare but cluster around peak hours**, posing risks during high-traffic periods. **Aligning shift start times with low-risk commuting windows, monitoring peak risk periods, and advising employees on alternative travel times could help mitigate train delays’ impact on production operations.**
+
 
 ![](Key_Finding_Timewindows.png)
 
+
 # Conclusion
 
-To summarize the entire project, three key points highlight the main conclusions.
+This analysis provided valuable insights into train delay patterns at Lucerne station and their potential impact on shift-based production at MadeUpCompany AG. The findings show that while 95% of trains arrive within 5 minutes of their scheduled time, the remaining **5%—equivalent to 2,343 delayed trains annually—pose a significant risk**, particularly for employees commuting during peak delay periods.
 
--   As a recommendation for production planning in MadeUpCompany AG, HSLU suggests taking fewer orders that need to be produced in November due to the higher frequency of delays during this period. Alternatively, employees could be advised to take earlier trains to minimize the impact of these delays on production.
+The highest delays occur in November, likely due to early-season freezing events and switch heating failures. By January, these failures are typically resolved, reducing disruptions despite continued cold weather. Tuesdays and Thursdays experience the most delays, while weekends have smoother transport operations with fewer disruptions. A detailed analysis of train delays by time of day revealed that morning (05:00-05:30) and evening (21:00-21:30) commuting periods are the most delay-prone, suggesting that alternative scheduling strategies or contingency plans could mitigate their impact.
 
--   Additionally, HSLU identified optimal time frames for work shifts, particularly between 02:00-06:00, 11:00-16:00, and 20:00-23:00, when traffic is lighter. These time windows could serve as ideal commuting periods to minimize delays.
+While general weather conditions (such as temperature, precipitation, or snow accumulation) have little correlation with delays, a **notable exception** was identified: when rain occurs at temperatures between -1°C and -5°C, the probability of delays exceeding 5 minutes rises sharply from 3.3% to 36.3%. This is likely due to **freezing rain, icy tracks, or switch failures**, creating localized but severe disruptions. Unlike general rain or cold weather, this specific combination of conditions requires close monitoring, as it has a strong potential to impact worker punctuality.
 
--   It was not possible to predict potential delays using the available weather dataset, as it was aggregated at a daily level. This level of detail was insufficient for meaningful analysis. If MadeUpCompany AG is interested in weather-based delay analysis, a more granular dataset would be required.
+Based on these findings, several recommendations can be made to improve shift reliability. To minimize disruptions, **November should be considered a high-risk month**, and employees should be encouraged to take earlier trains or alternative transport options where possible. **Low-risk commuting windows were identified between 02:00-06:00, 11:00-16:00, and 20:00-23:00**, which could be leveraged for more reliable commuting schedules. Targeted interventions for peak-risk hours (05:00-05:30 and 21:00-21:30) are recommended, such as real-time monitoring of train delays or adjusting shift start flexibility.
 
-Last but not least, a Shiny app was delivered as a Minimum Viable Product, enabling MadeUpCompany AG to explore the data and make their own discoveries. For future requests, HSLU would welcome further collaboration to enhance the analysis and develop an even more advanced and insightful Shiny app.
+The **lack of high-resolution weather data (e.g., hourly precipitation and temperature records)** limited the ability to create precise weather-delay models. If MadeUpCompany AG aims to predict train delays based on weather, acquiring **more granular weather data** would be necessary.
+
+As part of this project, an interactive R Shiny app was developed, allowing MadeUpCompany AG to explore delay patterns independently. The app enables users to analyze train delays based on specific days, delay categories, and time windows, providing a powerful tool for data-driven decision-making. Future refinements could include real-time data integration or predictive modeling to further optimize scheduling strategies.
+
+In summary, while train delays do impact production, they are **highly dependent on time-of-day and specific weather anomalies rather than general seasonal trends**. By implementing targeted strategies, such as scheduling adjustments during high-risk periods and monitoring specific weather anomalies, MadeUpCompany AG can take proactive steps to minimize disruptions and improve shift reliability.
