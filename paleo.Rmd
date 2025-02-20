@@ -890,9 +890,7 @@ ggplot(d.shiny.app,
 ```{r ShinyApp, echo=FALSE, message = FALSE, include=FALSE}
 
 ## Load packages
-library(shiny)
-library(ggplot2)
-
+require(shiny)
 
 
 ui <- fluidPage(
