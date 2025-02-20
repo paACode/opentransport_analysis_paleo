@@ -1,5 +1,6 @@
 ---
 title: "Paleo an Opentransport Analysis"
+subtitle: "[Public GitHub Repository](https://github.com/paACode/opentransport_analysis_paleo)"
 author: "Leonard Dost and Pascal Ackermann"
 date: "20.02.2025"
 output:
@@ -104,10 +105,10 @@ test_that("Shell Scripts to reduce dataset worked?", {
 })
 ```
 
-Upon reviewing the dataset, we identified several issues that need to be addressed:
+Upon reviewing the dataset, several issues were identified that need to be addressed:
 
 -   Trains departing late from Lucerne should be excluded, as only the arrival times are relevant to our analysis.
--   Arrival times that are predicted rather than measured should also be removed, as we are focusing exclusively on real data.
+-   Arrival times that are predicted rather than measured should also be removed, as the focus is exclusively on real data.
 
 ```{r Clean Up}
 # Columns needed: 
@@ -403,7 +404,7 @@ ggplot(data =subset.smaller5min, aes(x = delay.calc.min)) +
   theme_minimal()  # Apply a minimal theme
 ```
 
-As a first step to get an better understanding of the data set we plotted delays and air temperature. From this first impression plot, we observed that there does not seem to be a clear, strong linear relationship between air temperature ("Lufttemperatur") and the delay. The points are widely scattered and the regression line appears mostly flat. Further, there is a dense clustering of points around zero on the y-axis, indicating that a large number of observations have minimal or no delays, regardless of the air temperature. There are several noticeable outliers where delays exceed 50 minutes, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees there seems to be a higher delay suggesting further analysis also regarding percipitation. Although the use of jittering is helping to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
+As a first step to gain a better understanding of the dataset, delays and air temperature were plotted. From this first impression plot, it appears that there is no clear, strong linear relationship between air temperature ("Lufttemperatur") and delay. The points are widely scattered, and the regression line appears mostly flat. Additionally, a dense clustering of points around zero on the y-axis indicates that a large number of observations have minimal or no delays, regardless of air temperature. Several noticeable outliers exceed 50-minute delays, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees, delays appear to be higher, suggesting further analysis, particularly regarding precipitation. Although jittering helps to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
 
 ```{r Delay in relation to air temperature, include=TRUE, message=FALSE}
 ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
@@ -791,7 +792,7 @@ The **\>30 minute delay category** (blue line) is the **least frequent**, with c
 
 The **white-highlighted areas** represent **time windows with generally low delay counts**, particularly between **02:00-06:00**, **11:00-16:00** and **20:00-23:00**, when traffic is lighter. The identified time windows could present optimal commuting frames when workers delay due to public transport could be minimized.
 
-As a final step in the train delay analysis, we decided to investigate whether certain weekdays exhibit **distinct delay patterns throughout the day**. By analyzing the **percentage of delayed trains for each time window** and comparing daily trends, we aim to identify differences in delay behavior between weekdays and weekends. This analysis will provide further clarity on how **delay patterns evolve day-to-day** and whether **weekday-specific scheduling adjustments are warranted**.
+As a final step in the train delay analysis, the investigation focused on whether certain weekdays exhibit **distinct delay patterns throughout the day**. By analyzing the **percentage of delayed trains for each time window** and comparing daily trends, the goal is to identify differences in delay behavior between weekdays and weekends. This analysis will provide further clarity on how **delay patterns evolve day-to-day** and whether **weekday-specific scheduling adjustments are warranted**.
 
 ```{r Analysis of each weekday, include=TRUE, fig.width=10, fig.height=12}
 
@@ -994,11 +995,11 @@ The Shiny app serves as a powerful initial tool for MadeUpCompany AG, enabling t
 
 ## Assessing the Impact of Weather on Train Delays
 
-Weather conditions are often considered a significant factor influencing public transport reliability, which in turn can impact worker punctuality and overall production efficiency. To investigate the relationship between weather and train delays, this section analyzes key meteorological variables, including temperature, sun hours, precipitation, and snow height. By understanding general patterns in these variables, we aim to establish a foundation for assessing their potential contribution to train delays.
+Weather conditions are often considered a significant factor influencing public transport reliability, which in turn can impact worker punctuality and overall production efficiency. To investigate the relationship between weather and train delays, this section analyzes key meteorological variables, including temperature, sun hours, precipitation, and snow height. By understanding general patterns in these variables, the goal is to establish a foundation for assessing their potential contribution to train delays.
 
 ### Overview of Monthly Average Weather Conditions
 
-As a first step in our weather data analysis, we examined key meteorological metrics that are relevant to public transport performance, including **average temperature (°C)**, **average precipitation (mm)**, **average sunshine duration (hours)**, and **average snow depth (cm)**. These variables were analyzed on a **monthly basis** to capture seasonal variations and provide a clear understanding of how weather fluctuates throughout the year.
+As a first step in the weather data analysis, key meteorological metrics relevant to public transport performance were examined, including **average temperature (°C)**, **average precipitation (mm)**, **average sunshine duration (hours)**, and **average snow depth (cm)**. These variables were analyzed on a **monthly basis** to capture seasonal variations and provide a clear understanding of how weather fluctuates throughout the year.
 
 The table highlights distinct seasonal trends. **Temperature** shows a clear progression from cold winter months to warmer summer periods, with **January and February** averaging around **0°C to 3.6°C**, while **July and August** peak at **17.24°C and 18.06°C**, respectively. **Precipitation levels** are relatively consistent throughout the year, with slightly higher values in **March (5.34 mm)** and **May (5.94 mm)**, potentially coinciding with spring rainfall. The summer months experience lower precipitation, particularly in **August (2.64 mm)**.
 
