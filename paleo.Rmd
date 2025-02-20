@@ -1482,23 +1482,6 @@ This analysis highlights the importance of **event-based mitigation strategies**
 
 
 
-## Vacation Peaks in Switzerland
-
-Vacation peaks are to be expected in : - Easter Break (April) - Summer Holidays (July, August) - Autumn Holidays (October) - Christmas (Late December and January)
-
-```{r Vacation Peaks, echo=FALSE , include=FALSE}
-# d.vacation<- d.delayed_trains %>% 
-#   filter(month %in% c("January", "April", "July","August", "October", "December")
-#   )
-
-only_january <- d.combined %>% 
-  filter(month == "January")
-
-plot(only_january$delay.calc.min~only_january$datetime_ankunft)
-
-```
-
-
 
 # Use of Generative AI
 
@@ -1514,8 +1497,35 @@ In conclusion, while ChatGPT offers valuable assistance in coding, especially fo
 
 # Results
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+This chapter repeats the key findings of the report.
+
+Overall, SBB performs well at Lucerne train station, with approximately 95% of trains arriving on time or with a delay of no more than 5 minutes. These two delay categories are considered less critical and are unlikely to significantly impact MadeUpCompany AG's production.
+
+However, the remaining 5%—equivalent to 2,343 trains—pose a potential risk to MadeUpCompany AG's production, which explains why the data was further analyzed.
+
+A seasonal analysis revealed that, particularly in the fall, there is a significantly higher number of trains experiencing very high delays (>30 minutes) compared to other seasons. This is particularly interesting, as one might initially expect winter to have more delays due to colder weather and snow.
+
+![](Key_Finding_Fall.png)
+
+A closer look at the data revealed the reasons behind this pattern. November typically experiences the highest delays, as switch failures and track-related issues become more frequent when tracks are wet or frozen. This is often the first time of the year that the railways face freezing conditions, leading to track-related problems such as defective heaters that need replacing. In winter (January), despite the cold, these issues are less prevalent because the faulty devices have already been detected and replaced. However, the next period without heater usage, during the summer, poses a risk, as the heaters are not in use and may become damaged.
+
+![](Key_Finding_November.png)
+
+Through a more detailed analysis, additional optimal time windows for time shifts were identified, which could help minimize delays caused by public transport for commuters. The white-highlighted areas in the plot represent time windows with generally low delay counts, offering ideal opportunities to reduce delays.
+
+![](Key_Finding_Timewindows.png)
+
 
 # Conclusion
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+To summarize the entire project, three key points highlight the main conclusions.
+
+- As a recommendation for production planning in MadeUpCompany AG, HSLU suggests taking fewer orders that need to be produced in November due to the higher frequency of delays during this period. Alternatively, employees could be advised to take earlier trains to minimize the impact of these delays on production.
+
+- Additionally, HSLU identified optimal time frames for work shifts, particularly between 02:00-06:00, 11:00-16:00, and 20:00-23:00, when traffic is lighter. These time windows could serve as ideal commuting periods to minimize delays.
+
+- Last but not least, a Shiny app was delivered as a Minimum Viable Product, enabling MadeUpCompany AG to explore the data and make their own discoveries.
+
+For future requests, HSLU would welcome further collaboration to enhance the analysis and develop an even more advanced and insightful Shiny app.
+
+
