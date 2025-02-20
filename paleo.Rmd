@@ -356,7 +356,7 @@ head(d.weather$Datum)
 
 ```
 
-### Merge the data
+### Data Merge
 
 Afterwards, to merge the data a left join method was chosen and carried out. The ID used for the merge was the prior prepared date column.
 
@@ -372,7 +372,7 @@ The merging of the weather and train datasets ensures a comprehensive foundation
 
 # Data Analysis
 
-This analysis chapter examines the temporal and categorical patterns of train delays affecting MadeUpCompany AG employees arriving in Lucerne. By analyzing public transport data from 2024 onward, combined with Swiss weather data, the study investigates delay frequency, duration, and their distribution across weekdays and months. Key metrics, including total and delayed train counts, delay severity, and weather influence, are evaluated to identify trends that could inform effective countermeasures. Through statistical summaries and visualizations, the analysis aims to provide precise, data-driven recommendations to enhance production reliability by mitigating transport-related disruptions.
+This chapter examines the temporal and categorical patterns of train delays affecting MadeUpCompany AG employees arriving in Lucerne. By analyzing public transport data from 2024 in combination with Swiss weather data, the study investigates delay frequency, duration, and their distribution across weekdays and months. Key metrics, including total and delayed train counts, delay severity, and weather influence, are evaluated to identify trends that can inform effective countermeasures. Through statistical summaries and visualizations, the analysis aims to provide precise, data-driven recommendations to enhance production reliability by mitigating transport-related disruptions.
 
 ## Overview of Data
 
@@ -408,7 +408,7 @@ ggplot(data =subset.smaller5min, aes(x = delay.calc.min)) +
   theme_minimal()  # Apply a minimal theme
 ```
 
-As a first step to gain a better understanding of the dataset, delays and air temperature were plotted. From this first impression plot, it appears that there is no clear, strong linear relationship between air temperature ("Lufttemperatur") and delay. The points are widely scattered, and the regression line appears mostly flat. Additionally, a dense clustering of points around zero on the y-axis indicates that a large number of observations have minimal or no delays, regardless of air temperature. Several noticeable outliers exceed 50-minute delays, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees, delays appear to be higher, suggesting further analysis, particularly regarding precipitation. Although jittering helps to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
+As a further step, the air temperature was plotted againt the delays. It appears that there is no clear, strong linear relationship between air temperature ("Lufttemperatur") and delays. The points are widely scattered, and the regression line appears mostly flat. Additionally, a dense clustering of points around zero on the y-axis indicates that a large number of observations have minimal or no delays, regardless of air temperature. Several noticeable outliers exceed 50-minute delays, but these events seem sporadic and do not follow a clear pattern with air temperature. The air temperature values primarily fall between 0 and 20 degrees, but within this range, no significant change in delays is visually obvious. However, between 0 and -5 degrees, delays appear to be higher, suggesting further analysis, particularly regarding precipitation. Although jittering helps to distinguish overlapping points, the overall impression is that delays are not highly influenced by air temperature.
 
 ```{r Delay in relation to air temperature, include=TRUE, message=FALSE}
 ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
@@ -422,7 +422,7 @@ ggplot(d.combined, aes(x = Lufttemperatur, y = delay.calc.min)) +
 
 The "Scatter Plot with Jitter and Regression Line" serves as a representative example of the weak relationship observed between weather variables and train delays overall. This suggests that while weather may not be a primary driver of delays, further analysis of potential correlations between delayed trains and specific weather conditions could still reveal hidden patterns. However, before delving into these correlations, it is essential to first conduct a detailed analysis of delay patterns at the weekday and seasonal levels.
 
-## A Seasonal, Monthly and Weekday Perspective
+## Temporal Analysis of Train Delays
 
 To begin the analysis, it’s useful to explore the seasonal patterns of train delays. Overall, the delays show a consistent trend across all four seasons, with average delay times remaining stable throughout the year. However, when examining the maximum values, it becomes evident that Fall stands out with a notably higher maximum delay. This may be due to a single outlier, and further investigation is necessary before making any conclusions.
 
@@ -463,7 +463,7 @@ ggplot(d.delayed_trains, aes(x = season, y = delay.calc.min, fill = season)) +
 
 ### Monthly Delay Analysis
 
-Building on the seasonal analysis, it is essential to examine train delays on both a monthly and weekday basis to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The "Monthly Overview of Train Delays" was chosen to illustrate how delays fluctuate over time, providing insight into critical monthly trends and complementing the broader seasonal findings.
+Building on the seasonal analysis, it is essential to examine train delays on a monthly to uncover persistent delay patterns and identify operational challenges affecting employee punctuality at MadeUpCompany AG. The "Monthly Overview of Train Delays" was chosen to illustrate how delays fluctuate over time, providing insight into critical monthly trends and complementing the broader seasonal findings.
 
 For most months, the average delay time remains relatively stable between 80 and 110 seconds. However, a spike in November is visible. strengthens the hypothesis that higher delays are associated with early-season temperature drops. This pattern suggests potential failures in switch heating systems, leading to freezing-related malfunctions.
 
@@ -628,10 +628,6 @@ overview_delay_table %>%
 
 ```
 
-***Question: At which weekday are more extreme delays? -\> Boxplot with the outliers could show***
-
-***Question: At which time e.g. on thursdays is the delay the most?***
-
 Having previously considered the general delay rates as a percentage, it is necessary to analyse them according to their intensity or length. Therefore it is helpful to investigate in so called outliers or extreme delays. As a first impression we analyzed the dataset by a boxplot.
 
 ```{r Delay per Weekday BoxPlot, echo=FALSE, message = FALSE, include=TRUE}
@@ -640,15 +636,13 @@ ggplot(d.combined, aes(x = weekday, y = delay.calc.min, fill = weekday)) +
     scale_y_sqrt()
 ```
 
-<br> The boxplot provides an overview of the **distribution of delays across weekdays**, including **outliers or extreme delays**. The **box** represents the interquartile range (IQR), showing the middle 50% of delay durations, while the **line within the box** indicates the median delay. The **whiskers** extend to the minimum and maximum values within 1.5 times the IQR, and points beyond the whiskers are considered **outliers**.
-
-From the plot, we observe that the **median delay across all weekdays is relatively low**, indicating that most delays are short and within a manageable range. However, there are **numerous outliers across all days**, particularly on **Thursday and Friday**, where extreme delays frequently exceed **60 to 90 minutes**. This suggests that while delays are generally short, the **presence of occasional long delays could significantly impact punctuality** and cause production disruptions.
+<br> The boxplot provides an overview of the **distribution of delays across weekdays**, including **outliers or extreme delays**. From the plot, we observe that the **median delay across all weekdays is relatively low**, indicating that most delays are short and within a manageable range. However, there are **numerous outliers across all days**, particularly on **Thursday and Friday**, where extreme delays frequently exceed **45 to 90 minutes**. This suggests that while delays are generally short, the **presence of occasional long delays could significantly impact punctuality** and cause production disruptions.
 
 Additionally, **Saturday and Sunday** show **slightly lower median delays and fewer extreme outliers** compared to weekdays, reinforcing the observation that weekends tend to experience **smoother operations** with less severe disruptions. The overall spread of the delays during the week, combined with the concentration of outliers, highlights the **importance of further investigating the causes of extreme delays** and identifying **targeted interventions to mitigate their impact**.
 
 In summary, while most train delays are relatively short, the significant number of extreme delays on certain weekdays, particularly **Thursday and Friday**, indicates the need for **outlier-specific analyses** and corrective measures to address these events effectively. It is interesting to note that previously, when looking at the percentage of delays per weekday (Summary of Train Delays by Weekday), the days Tuesday and Thursday were conspicuous with approx. 68% and 67% respectively. The analysis of extreme delays, however, shows that on Tuesdays, despite an average increase in the number of delays, delays are not unusually long and therefore pose a lower risk of influencing the punctuality of MadeUpCompany AG workers.
 
-## Hourly Delay Analysis
+### Hourly Delay Analysis
 
 Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior** at Lucern Station. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.
 
@@ -852,7 +846,7 @@ On the other hand, **weekend days—Saturday and Sunday—exhibit relatively sta
 
 In conclusion, this final plot demonstrates that **weekday-specific planning is essential**, particularly on **high-risk days like Tuesday and Thursday**. By contrast, the stability of weekend delays provides opportunities for **resource optimization and maintenance planning**. Together, these insights contribute to a **holistic understanding of how delays affect production** at MadeUpCompany AG and support the development of **effective, data-driven strategies** for mitigating transport-related disruptions.
 
-## Chapter of Choice - R Shiny App for Hourly Delay Analysis
+### Chapter of Choice - R Shiny App
 
 In the previous chapter, Hourly Delay Analysis, only a small selection of possible plots was presented, leaving many relationships yet to be explored.
 
@@ -994,11 +988,11 @@ Another example is shown in the screenshot below, where only the "5-15 min" dela
 
 ![](shinyapp_paleo_1.png) The Shiny app serves as a powerful initial tool for MadeUpCompany AG, enabling them to explore data, draw conclusions, and uncover insights without requiring R expertise. The project team delivers this as a first Minimum Viable Product (MVP) and looks forward to receiving feedback to further refine and enhance the app based on the customer's needs.
 
-## Assessing the Impact of Weather on Train Delays
+## Weather Effects on Train Delays
 
 Weather conditions are often considered a significant factor influencing public transport reliability, which in turn can impact worker punctuality and overall production efficiency. To investigate the relationship between weather and train delays, this section analyzes key meteorological variables, including temperature, sun hours, precipitation, and snow height. By understanding general patterns in these variables, the goal is to establish a foundation for assessing their potential contribution to train delays.
 
-### Overview of Monthly Average Weather Conditions
+### Monthly Weather Trends
 
 As a first step in the weather data analysis, key meteorological metrics relevant to public transport performance were examined, including **average temperature (°C)**, **average precipitation (mm)**, **average sunshine duration (hours)**, and **average snow depth (cm)**. These variables were analyzed on a **monthly basis** to capture seasonal variations and provide a clear understanding of how weather fluctuates throughout the year.
 
@@ -1131,7 +1125,7 @@ ggplot() +
 
 ```
 
-### **Aggregating Daily Delays to Identify Weather Impacts**
+### Daily Delays and Weather Impact
 
 To effectively analyze the influence of weather on train delays, it is essential to aggregate individual delay records into a **daily metric**. While the **weather data** is already structured on a **daily basis**, the **transport delay data** is recorded for each incoming train, making direct comparisons difficult. Therefore, the delay times must be **aggregated by day**, which is achieved by calculating the **average delay per day**. This aggregation provides a **summary measure** that reflects the **overall severity of delays** for a given day and allows for a **more direct correlation with daily weather conditions**.
 
@@ -1242,7 +1236,7 @@ model <- lm(delay.calc.min ~ Niederschlag + Lufttemperatur, data = d.combined)
 summary(model)
 ```
 
-### **Impact of Rainy Days on Train Delays**
+### Rainy Days and Train Delays
 
 To further investigate **weather-induced disruptions**, we analyzed the **difference in average delays between rainy and dry days**. Rainy days were defined as days with **more than 5 mm of precipitation**, while dry days were those with **5 mm or less**. This comparison aims to uncover whether **rainfall significantly contributes to train delays** and how this insight can inform **shift production planning**.
 
@@ -1263,11 +1257,11 @@ d.combined %>%
 |    dry    |    0.7050949     |
 |   rainy   |    0.9855824     |
 
-#### **Key Findings:**
+#### Key Findings
 
 An initial comparison of mean delays reveals that **rainy days** experience **slightly longer average delays** (**0.99 minutes**) compared to **dry days** (**0.70 minutes**). Although statistically significant, the **difference of 0.28 minutes** suggests that **rainfall alone is not a major contributor to overall train delays**. The **small effect size** indicates that while rain may have some impact, **other factors likely play a more significant role**.
 
-#### **Statistical Validation:**
+#### Statistical Validation
 
 A **Wilcoxon rank-sum test** confirms that the difference between delays on rainy and dry days is **highly statistically significant** (**p-value \< 2.2e-16**). However, regression analysis reveals that **rainfall explains only 0.26% of the variation in delays** (**R² = 0.0026**). This low R² value demonstrates that **rainfall, by itself, is not a reliable predictor of train delays**.
 
@@ -1286,11 +1280,11 @@ summary(lm_model)
 
 ```
 
-#### **Managerial Implications:**
+#### Managerial Implications
 
 The **statistical analysis shows that no valid conclusions** regarding the **adjustment of shift schedules** can be drawn based on the current results. The **small difference in average delays** between rainy and dry days suggests that **general rainfall does not warrant significant changes** in shift planning. Instead, **managers should focus on other factors**—such as **temperature drops, snow accumulation, and heavy rainfall events**—that may have a stronger and more reliable impact on delays. Additionally, specific weather thresholds, such as **prolonged or heavy rainfall (e.g., \>10 mm)**, could still be monitored for potential effects, though further analysis is needed to confirm their relevance.
 
-### **Delays Under Extreme Weather Conditions**
+### Extreme Weather and Train Delays
 
 After establishing that general rainfall **does not significantly affect train delays**, we now shift our focus to **extreme weather conditions**—days with either **more than 20 mm of precipitation** or **significant snowfall events**. Previously, we classified extreme weather based on **total snow depth ("Gesamtschneehöhe")**, but this approach was problematic as snow depth **accumulates or decreases** depending on various conditions (e.g., melting or compaction) and **does not directly indicate daily snowfall**. To correct this, we calculated the **daily snowfall rate** by subtracting the previous day’s snow depth from the current day’s depth. Days with **a snowfall rate greater than 10 cm** were classified as having **extreme snowfall**. This adjustment ensures that only days with **active snowfall** are classified as extreme, resulting in a more accurate classification of weather conditions.
 
