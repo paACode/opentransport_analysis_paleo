@@ -1,7 +1,7 @@
 ---
-title: "Paleo an opentransport Analysis"
+title: "Paleo an Opentransport Analysis"
 author: "Leonard Dost and Pascal Ackermann"
-date: "30.01.2025"
+date: "20.02.2025"
 output:
   html_document:
     toc: true
@@ -34,7 +34,6 @@ Three possible countermeasure were identified:
 
 -   Adjust shift start times based on transportation reliability.
 -   Implement seasonal adjustments to production capacity based on weather-related transportation disruptions.
--   Consider train categories to mitigate dependency on unreliable train routes.
 -   Use weather data and forecasts to predict possible delays
 
 The goal of the Data Science students is to provide MadeUpCompany AG with an insightful report, analyzing publicly available data, to see which of the countermeasures could be most effective.
@@ -1524,8 +1523,8 @@ To summarize the entire project, three key points highlight the main conclusions
 
 - Additionally, HSLU identified optimal time frames for work shifts, particularly between 02:00-06:00, 11:00-16:00, and 20:00-23:00, when traffic is lighter. These time windows could serve as ideal commuting periods to minimize delays.
 
-- Last but not least, a Shiny app was delivered as a Minimum Viable Product, enabling MadeUpCompany AG to explore the data and make their own discoveries.
+- It was not possible to predict potential delays using the available weather dataset, as it was aggregated at a daily level. This level of detail was insufficient for meaningful analysis. If MadeUpCompany AG is interested in weather-based delay analysis, a more granular dataset would be required.
 
-For future requests, HSLU would welcome further collaboration to enhance the analysis and develop an even more advanced and insightful Shiny app.
+Last but not least, a Shiny app was delivered as a Minimum Viable Product, enabling MadeUpCompany AG to explore the data and make their own discoveries. For future requests, HSLU would welcome further collaboration to enhance the analysis and develop an even more advanced and insightful Shiny app.
 
 
