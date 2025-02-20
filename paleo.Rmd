@@ -645,7 +645,7 @@ Additionally, **Saturday and Sunday** show **slightly lower median delays and fe
 
 In summary, while most train delays are relatively short, the significant number of extreme delays on certain weekdays, particularly **Thursday and Friday**, indicates the need for **outlier-specific analyses** and corrective measures to address these events effectively. It is interesting to note that previously, when looking at the percentage of delays per weekday (Summary of Train Delays by Weekday), the days Tuesday and Thursday were conspicuous with approx. 68% and 67% respectively. The analysis of extreme delays, however, shows that on Tuesdays, despite an average increase in the number of delays, delays are not unusually long and therefore pose a lower risk of influencing the punctuality of MadeUpCompany AG workers.
 
-### Hourly Delay Analysis
+## Hourly Delay Analysis
 
 Building on the weekday-level analysis, it is important to further investigate specific hours of train arrivals in Lucerne to identify how delay patterns align with key shift changes at MadeUpCompany AG, where shifts start at **06:00, 14:00, and 22:00**, and workers are expected to arrive at least **30 minutes prior** at Lucern Station. By focusing on hourly arrival data, we aim to uncover critical time windows where public transport delays may disproportionately impact employee punctuality and production reliability.
 
@@ -848,11 +848,13 @@ On the other hand, **weekend days—Saturday and Sunday—exhibit relatively sta
 
 In conclusion, this final plot demonstrates that **weekday-specific planning is essential**, particularly on **high-risk days like Tuesday and Thursday**. By contrast, the stability of weekend delays provides opportunities for **resource optimization and maintenance planning**. Together, these insights contribute to a **holistic understanding of how delays affect production** at MadeUpCompany AG and support the development of **effective, data-driven strategies** for mitigating transport-related disruptions.
 
-# Chapter of Choice - R Shiny App
+## Chapter of Choice - R Shiny App for Hourly Delay Analysis
 
-In the previous chapter, plots illustrated the number of delays on different days.To enable MadeUpCompany AG to explore the data independently, an interactive R Shiny app was developed. This allows them to uncover patterns that may have gone unnoticed.
+In the previous chapter, Hourly Delay Analysis, only a small selection of possible plots was presented, leaving many relationships yet to be explored.
 
-The plot below showcases all the data available for exploration . However, due to the high density of information, it is difficult to discern any clear patterns. With the interactive capabilities of the Shiny app, users can now explore the data dynamically and uncover meaningful insights more effectively.
+The plot below displays the full dataset available for hourly delay analysis. However, due to the high density of information, identifying clear patterns can be challenging.
+
+To address this, an interactive R Shiny app was developed, enabling MadeUpCompany AG to independently explore the data and uncover meaningful insights.
 
 ```{r ShinyDataPrep, include = TRUE, echo=FALSE, message = FALSE, include=TRUE}
 
@@ -885,7 +887,7 @@ ggplot(d.shiny.app,
 
 ```
 
-```{r Shiny, echo=FALSE, message = FALSE, include=FALSE}
+```{r ShinyApp, echo=FALSE, message = FALSE, include=FALSE}
 
 ## Load packages
 library(shiny)
@@ -895,24 +897,33 @@ library(ggplot2)
 
 ui <- fluidPage(
   h3("User Input"),
-    ## Input: what variable to focus on the x-axis
-    checkboxGroupInput(inputId = "input.weekday", 
-                label = "Choose Weekday:",
-                choices = unique(d.shiny.app$weekday),
-                selected = unique(d.shiny.app$weekday)),
-    
-    ## Input: what variable to focus on the y-axis
-    checkboxGroupInput(inputId = "input.delaycategory", 
-                label = "Choose Delay Category:",
-                choices = unique(d.combined$delay.category),
-                selected = "on time"),
-    
-    ## Example of an action button
-    actionButton(inputId = "user.update", 
-                 label = "Update Plot"),
+  fluidRow(
+    div(style = "display: flex; gap: 20px; flex-wrap: nowrap;",  # Forces side by side layout
+        
+        column(width=6, 
+               ## Input: what variable to focus on the x-axis
+               checkboxGroupInput(inputId = "input.weekday", 
+                                  label = "Choose Weekday:",
+                                  choices = unique(d.shiny.app$weekday),
+                                  selected = unique(d.shiny.app$weekday)), 
+        ),
+        column(width = 6, 
+               ## Input: what variable to focus on the y-axis
+               checkboxGroupInput(inputId = "input.delaycategory", 
+                                  label = "Choose Delay Category:",
+                                  choices = unique(d.combined$delay.category),
+                                  selected = "on time"),
+        )
+    )
+  ),
   #Final Plot
-  h3("Plot"),
-      plotOutput(outputId = "plot.output"),
+  column(width = 12,
+         h3("Plot"),
+         plotOutput(outputId = "plot.output"),
+         
+  )
+  
+  
   
 )
 
@@ -971,6 +982,16 @@ shinyApp(ui, server)
 
 ```
 
+The Shiny App developed enables users to select specific weekdays and delay-categories of interest. The plot updates automatically as checkboxes are selected or deselected.
+
+As example the screenshot below shows a scenario where all weekdays are selected. However, in this case, the user aims to explore potential relationships between the "5-15 min" and "On Time" delay categories.
+
+![](shinyapp_paleo_2.png)
+
+Another example is shown in the screenshot below, where only the "5-15 min" delay category is selected. This allows for more detailed insights into this specific category, as the Y-axis scaling is adjusted accordingly.
+
+![](shinyapp_paleo_1.png)
+The Shiny app serves as a powerful initial tool for MadeUpCompany AG, enabling them to explore data, draw conclusions, and uncover insights without requiring R expertise. The project team delivers this as a first Minimum Viable Product (MVP) and looks forward to receiving feedback to further refine and enhance the app based on the customer's needs.
 
 ## Assessing the Impact of Weather on Train Delays
 
