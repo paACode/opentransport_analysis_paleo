@@ -421,9 +421,11 @@ The "Scatter Plot with Jitter and Regression Line" serves as a representative ex
 ## A Seasonal, Monthly and Weekday Perspective
 
 
+To begin the analysis, it’s useful to explore the seasonal patterns of train delays. Overall, the delays show a consistent trend across all four seasons, with average delay times remaining stable throughout the year. However, when examining the maximum values, it becomes evident that Fall stands out with a notably higher maximum delay. This may be due to a single outlier, and further investigation is necessary before making any conclusions.
+
 ### Seasonal Delay Analysis
 
-To begin the analysis, it’s useful to explore the seasonal patterns of train delays. Overall, the delays show a consistent trend across all four seasons, with average delay times remaining stable throughout the year. However, when examining the maximum values, it becomes evident that Fall stands out with a notably higher maximum delay. This may be due to a single outlier, and further investigation is necessary before making any conclusions.
+As an initial step, it makes sense to examine the seasonal patterns of train delays. Overall, the delays appear to be quite consistent across all four seasons. The summary statistics presented below reveal that, on average, delays remain steady throughout the year, with no significant fluctuations from one season to the next.
 
 ```{r Seaonsal analysis statistics, include=TRUE}
 d.delayed_trains <- d.combined %>% 
